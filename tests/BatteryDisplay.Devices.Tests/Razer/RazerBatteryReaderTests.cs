@@ -125,7 +125,7 @@ public class RazerBatteryReaderTests
     }
 
     private static Task<BatteryStatus?> Read(FakeMouse mouse) =>
-        new RazerBatteryReader(mouse, RazerReport.CobraTransactionId, NoWait).ReadAsync(CancellationToken.None);
+        new RazerBatteryReader(mouse, RazerReportTests.CobraTransactionId, NoWait).ReadAsync(CancellationToken.None);
 
     private sealed class FakeMouse : IRazerTransport
     {

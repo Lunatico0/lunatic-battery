@@ -7,13 +7,10 @@ namespace BatteryDisplay.Devices.SteelSeries;
 /// (lib/devices/steelseries_arctis_nova_5.hpp and protocols/steelseries_protocol.hpp,
 /// commit 6b3f7788c9561a467cad7a90576ccec15e10f6bf). Only the 0xB0 status query is used.
 /// Payload offsets match HeadsetControl, whose hidapi reads drop the report ID byte.
+/// Vendor, product ids, interface and usage live in the device catalog.
 /// </summary>
 public static class ArctisNova5Protocol
 {
-    public const int VendorId = 0x1038;
-    public static readonly int[] ProductIds = [0x2232, 0x2253];
-    public const int InterfaceNumber = 3;
-    public const uint Usage = 0xFFC00001;
     public const int ReadTimeoutMs = 5000;
     public const int MaxReportsPerQuery = 8;
 
@@ -25,8 +22,8 @@ public static class ArctisNova5Protocol
     private const byte HeadsetOffline = 0x02;
     private const byte HeadsetCharging = 0x01;
 
-    public static bool IsStatusInterface(string devicePath) =>
-        devicePath.Contains($"&mi_{InterfaceNumber:D2}", StringComparison.OrdinalIgnoreCase);
+    public static bool IsStatusInterface(string devicePath, int interfaceNumber) =>
+        devicePath.Contains($"&mi_{interfaceNumber:D2}", StringComparison.OrdinalIgnoreCase);
 
     public static byte[] BuildStatusRequest(int outputReportLength)
     {

@@ -11,32 +11,32 @@ public interface IXInputApi
     XInputBatteryInformation? GetGamepadBattery(uint userIndex);
 }
 
+/// <summary>Gamepad in one XInput slot (user index 0..3).</summary>
 public sealed class XInputGamepadProvider : IBatteryProvider
 {
+    public const uint MaxSlots = 4;
+
     private readonly IXInputApi _api;
+    private readonly uint _slot;
 
-    public XInputGamepadProvider() : this(new XInputNativeApi()) { }
+    public XInputGamepadProvider(IXInputApi api, uint slot)
+    {
+        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(slot, MaxSlots);
+        _api = api;
+        _slot = slot;
+    }
 
-    public XInputGamepadProvider(IXInputApi api) => _api = api;
-
-    private const uint MaxUsers = 4;
-
-    public string Id => "xinput-gamepad";
-    public string Name => "Joystick";
+    public string Id => $"xinput-{_slot}";
+    public string Name => $"Control {_slot + 1}";
     public DeviceKind Kind => DeviceKind.Gamepad;
 
     public Task<BatteryStatus?> ReadAsync(CancellationToken ct)
     {
-        for (uint i = 0; i < MaxUsers; i++)
-        {
-            ct.ThrowIfCancellationRequested();
-            if (!_api.IsConnected(i))
-                continue;
+        ct.ThrowIfCancellationRequested();
+        if (!_api.IsConnected(_slot))
+            return Task.FromResult<BatteryStatus?>(null);
 
-            var info = _api.GetGamepadBattery(i);
-            return Task.FromResult(info is { } b ? XInputBatteryMapper.Map(b.Type, b.Level) : null);
-        }
-
-        return Task.FromResult<BatteryStatus?>(null);
+        var info = _api.GetGamepadBattery(_slot);
+        return Task.FromResult(info is { } b ? XInputBatteryMapper.Map(b.Type, b.Level) : null);
     }
 }

@@ -17,7 +17,10 @@ public class XInputHardwareTests(ITestOutputHelper output)
             output.WriteLine($"user {i}: connected={connected} raw={raw?.ToString() ?? "n/a"} rawType=0x{(byte?)raw?.Type:X2} rawLevel=0x{(byte?)raw?.Level:X2}");
         }
 
-        var status = await new XInputGamepadProvider().ReadAsync(CancellationToken.None);
-        output.WriteLine($"provider: {status?.ToString() ?? "null"}");
+        foreach (var provider in new XInputDeviceSource().Discover())
+        {
+            var status = await provider.ReadAsync(CancellationToken.None);
+            output.WriteLine($"{provider.Id} ({provider.Name}): {status?.ToString() ?? "null"}");
+        }
     }
 }

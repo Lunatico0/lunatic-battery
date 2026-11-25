@@ -1,0 +1,29 @@
+{
+  // Known devices, one entry per physical model. Ids are hex strings ("0x1532") or plain numbers.
+  // A model whose family already exists is added here without touching code.
+  // Families and their options:
+  //   razer-hid: transactionId of the 90-byte Razer feature report.
+  //   steelseries-arctis-nova-5: interface (HID interface number) and usage (vendor usage of the status collection).
+  "devices": [
+    {
+      // Wired 00DA and dongle 00DB, per OpenRazer razermouse_driver.h.
+      "id": "razer-cobra-hyperspeed",
+      "family": "razer-hid",
+      "name": "Razer Cobra HyperSpeed",
+      "kind": "Mouse",
+      "vendorId": "0x1532",
+      "productIds": [ "0x00DA", "0x00DB" ],
+      "options": { "transactionId": "0x1F" }
+    },
+    {
+      // Nova 5 and Nova 5X base stations, per HeadsetControl steelseries_arctis_nova_5.hpp.
+      "id": "steelseries-arctis-nova-5",
+      "family": "steelseries-arctis-nova-5",
+      "name": "Arctis Nova 5",
+      "kind": "Headset",
+      "vendorId": "0x1038",
+      "productIds": [ "0x2232", "0x2253" ],
+      "options": { "interface": 3, "usage": "0xFFC00001" }
+    }
+  ]
+}

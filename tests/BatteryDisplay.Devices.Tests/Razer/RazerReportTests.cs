@@ -4,6 +4,9 @@ namespace BatteryDisplay.Devices.Tests.Razer;
 
 public class RazerReportTests
 {
+    // Transaction id of the Cobra HyperSpeed (catalog option transactionId).
+    internal const byte CobraTransactionId = 0x1F;
+
     // Battery response captured from a Cobra HyperSpeed through its dongle (PID 00DB), report id stripped.
     internal const string RealBatteryResponseHex =
         "021F0000000207800040000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000C500";
@@ -11,7 +14,7 @@ public class RazerReportTests
     [Fact]
     public void Battery_request_has_the_exact_bytes()
     {
-        var request = RazerReport.BuildRequest(RazerReport.CobraTransactionId, RazerReport.BatteryLevel);
+        var request = RazerReport.BuildRequest(RazerReportTests.CobraTransactionId, RazerReport.BatteryLevel);
 
         var expected = new byte[90];
         expected[1] = 0x1F;
@@ -25,7 +28,7 @@ public class RazerReportTests
     [Fact]
     public void Charging_request_has_the_exact_bytes()
     {
-        var request = RazerReport.BuildRequest(RazerReport.CobraTransactionId, RazerReport.ChargingStatus);
+        var request = RazerReport.BuildRequest(RazerReportTests.CobraTransactionId, RazerReport.ChargingStatus);
 
         var expected = new byte[90];
         expected[1] = 0x1F;
@@ -129,7 +132,7 @@ public class RazerReportTests
 
     internal static byte[] Response(RazerStatus status, RazerCommand command, byte value)
     {
-        var bytes = RazerReport.BuildRequest(RazerReport.CobraTransactionId, command);
+        var bytes = RazerReport.BuildRequest(RazerReportTests.CobraTransactionId, command);
         bytes[0] = (byte)status;
         bytes[9] = value;
         bytes[88] = RazerReport.Checksum(bytes);

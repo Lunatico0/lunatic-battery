@@ -46,13 +46,4 @@ public class XInputBatteryMapperTests
         Assert.Equal(new BatteryStatus(null, ChargeState.Unknown),
             XInputBatteryMapper.Map((XInputBatteryType)0x42, XInputBatteryLevel.Full));
     }
-
-    [Fact]
-    public void Provider_exposes_identity()
-    {
-        var provider = new XInputGamepadProvider();
-        Assert.Equal("xinput-gamepad", provider.Id);
-        Assert.Equal("Joystick", provider.Name);
-        Assert.Equal(DeviceKind.Gamepad, provider.Kind);
-    }
 }

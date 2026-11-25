@@ -13,15 +13,6 @@ public class ArctisNova5ProtocolTests
     }
 
     [Fact]
-    public void Supports_nova5_and_nova5x_base_stations()
-    {
-        Assert.Equal(0x1038, ArctisNova5Protocol.VendorId);
-        Assert.Equal(new[] { 0x2232, 0x2253 }, ArctisNova5Protocol.ProductIds);
-        Assert.Equal(3, ArctisNova5Protocol.InterfaceNumber);
-        Assert.Equal(0xFFC00001u, ArctisNova5Protocol.Usage);
-    }
-
-    [Fact]
     public void Status_request_is_report_id_zero_then_0xB0_padded_to_report_length()
     {
         var request = ArctisNova5Protocol.BuildStatusRequest(65);
@@ -94,13 +85,14 @@ public class ArctisNova5ProtocolTests
     }
 
     [Theory]
-    [InlineData(@"\\?\hid#vid_1038&pid_2232&mi_03#7&162212a7&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}", true)]
-    [InlineData(@"\\?\HID#VID_1038&PID_2253&MI_03#x", true)]
-    [InlineData(@"\\?\hid#vid_1038&pid_2232&mi_05#7&e7811c&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}", false)]
-    [InlineData(@"\\?\hid#vid_1038&pid_2232&mi_04#x", false)]
-    public void Only_interface_3_carries_the_status_report(string devicePath, bool expected)
+    [InlineData(@"\\?\hid#vid_1038&pid_2232&mi_03#7&162212a7&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}", 3, true)]
+    [InlineData(@"\\?\HID#VID_1038&PID_2253&MI_03#x", 3, true)]
+    [InlineData(@"\\?\hid#vid_1038&pid_2232&mi_05#7&e7811c&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}", 3, false)]
+    [InlineData(@"\\?\hid#vid_1038&pid_2232&mi_04#x", 3, false)]
+    [InlineData(@"\\?\hid#vid_1038&pid_2232&mi_04#x", 4, true)]
+    public void Only_the_configured_interface_carries_the_status_report(string devicePath, int interfaceNumber, bool expected)
     {
-        Assert.Equal(expected, ArctisNova5Protocol.IsStatusInterface(devicePath));
+        Assert.Equal(expected, ArctisNova5Protocol.IsStatusInterface(devicePath, interfaceNumber));
     }
 
     [Fact]

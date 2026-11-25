@@ -1,6 +1,6 @@
 namespace BatteryDisplay.Core;
 
-public enum DeviceKind { Mouse, Keyboard, Headset, Gamepad }
+public enum DeviceKind { Mouse, Keyboard, Headset, Gamepad, Other }
 
 public enum ChargeState { Unknown, Discharging, Charging, Full }
 

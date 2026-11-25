@@ -1,7 +1,9 @@
+using BatteryDisplay.App.Discovery;
 using BatteryDisplay.App.Tray;
 using BatteryDisplay.Core;
-using BatteryDisplay.Devices.Razer;
-using BatteryDisplay.Devices.SteelSeries;
+using BatteryDisplay.Devices.Bluetooth;
+using BatteryDisplay.Devices.Catalog;
+using BatteryDisplay.Devices.XInput;
 
 namespace BatteryDisplay.App;
 
@@ -18,14 +20,15 @@ static class Program
 
         ApplicationConfiguration.Initialize();
 
-        // Composition root: one entry per device, in tray order.
-        IBatteryProvider[] providers =
+        // Composition root: device sources, in tray order. Each refresh rediscovers what is connected.
+        IDeviceSource[] sources =
         [
-            new RazerCobraHyperSpeedProvider(),
-            new SteelSeriesArctisNova5Provider(),
+            new CatalogDeviceSource(),
+            new BluetoothDeviceSource(),
+            new XInputDeviceSource(),
         ];
 
-        using var context = new TrayApplicationContext(providers);
+        using var context = new TrayApplicationContext(new DeviceDiscovery(sources));
         Application.Run(context);
     }
 }

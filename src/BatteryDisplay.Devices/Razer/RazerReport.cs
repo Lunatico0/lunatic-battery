@@ -16,7 +16,6 @@ public readonly record struct RazerResponse(RazerStatus Status, byte CommandClas
 public static class RazerReport
 {
     public const int Length = 90;
-    public const byte CobraTransactionId = 0x1F;
 
     public static readonly RazerCommand BatteryLevel = new(0x07, 0x80, 0x02);
     public static readonly RazerCommand ChargingStatus = new(0x07, 0x84, 0x02);
