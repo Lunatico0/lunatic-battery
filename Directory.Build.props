@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <!-- Agents build with separate artifacts paths; never compile stray bin/obj leftovers. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);bin/**;obj/**</DefaultItemExcludes>
+  </PropertyGroup>
+</Project>
