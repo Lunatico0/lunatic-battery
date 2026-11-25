@@ -28,6 +28,7 @@ public sealed class RazerHidProvider : IBatteryProvider
     public string Id => _entry.Id;
     public string Name => _entry.Name;
     public DeviceKind Kind => _entry.Kind;
+    public string Source => "Dongle Razer";
     public int VendorId => _entry.VendorId;
 
     /// <summary>Tried in catalog order.</summary>

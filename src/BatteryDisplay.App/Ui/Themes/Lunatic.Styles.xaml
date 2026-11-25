@@ -1,0 +1,188 @@
+<!--
+    Shared styles for the flyout and the settings window. Colors come only from DynamicResource keys: the Lunatic.*
+    tones (Lunatic.Dark.xaml / Lunatic.Light.xaml) and the Fluent theme's system brushes, so a theme swap repaints
+    everything without touching a view.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="clr-namespace:BatteryDisplay.App.Ui.Controls"
+                    xmlns:devices="clr-namespace:BatteryDisplay.App.Ui.Devices"
+                    xmlns:presentation="clr-namespace:BatteryDisplay.App.Presentation">
+
+    <BooleanToVisibilityConverter x:Key="Lunatic.BoolToVisibility" />
+
+    <!-- A device ring bound to a DeviceRowViewModel: tone by LevelColor, dimmed glyph when there is no level. -->
+    <Style x:Key="Lunatic.DeviceRing" TargetType="controls:BatteryRing">
+        <Setter Property="LitSegments" Value="{Binding LitSegments}" />
+        <Setter Property="Glyph" Value="{Binding Glyph}" />
+        <Setter Property="GlyphFontFamily" Value="{DynamicResource SymbolThemeFontFamily}" />
+        <Setter Property="UnlitBrush" Value="{DynamicResource Lunatic.Tone.Unlit}" />
+        <Setter Property="LitBrush" Value="{DynamicResource Lunatic.Tone.Unlit}" />
+        <Setter Property="GlyphBrush" Value="{DynamicResource Lunatic.Glyph}" />
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding Tone}" Value="{x:Static presentation:LevelColor.High}">
+                <Setter Property="LitBrush" Value="{DynamicResource Lunatic.Tone.High}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Tone}" Value="{x:Static presentation:LevelColor.Medium}">
+                <Setter Property="LitBrush" Value="{DynamicResource Lunatic.Tone.Medium}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Tone}" Value="{x:Static presentation:LevelColor.Low}">
+                <Setter Property="LitBrush" Value="{DynamicResource Lunatic.Tone.Low}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Tone}" Value="{x:Static presentation:LevelColor.Charging}">
+                <Setter Property="LitBrush" Value="{DynamicResource Lunatic.Tone.Charging}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding LevelKnown}" Value="False">
+                <Setter Property="GlyphBrush" Value="{DynamicResource Lunatic.Glyph.Unknown}" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- The state under a device value, bound to a DeviceRowViewModel. -->
+    <Style x:Key="Lunatic.DeviceStateText" TargetType="TextBlock">
+        <Setter Property="Text" Value="{Binding StateText}" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding State}" Value="{x:Static devices:DeviceState.Low}">
+                <Setter Property="Foreground" Value="{DynamicResource Lunatic.State.Low}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding State}" Value="{x:Static devices:DeviceState.Charging}">
+                <Setter Property="Foreground" Value="{DynamicResource Lunatic.State.Charging}" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="Lunatic.PrimaryText" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+        <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+    </Style>
+
+    <Style x:Key="Lunatic.SecondaryText" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+        <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+    </Style>
+
+    <!-- An option card in the settings window. -->
+    <Style x:Key="Lunatic.Card" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefaultBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeColorDefaultBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Padding" Value="16,12" />
+        <Setter Property="Margin" Value="0,0,0,6" />
+    </Style>
+
+    <!-- A glyph-only button (the flyout's settings gear). Set AutomationProperties.Name and ToolTip on each use. -->
+    <Style x:Key="Lunatic.IconButton" TargetType="Button">
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+        <Setter Property="FontFamily" Value="{DynamicResource SymbolThemeFontFamily}" />
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="Width" Value="32" />
+        <Setter Property="Height" Value="32" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Chrome" Background="Transparent" CornerRadius="4" BorderThickness="1" BorderBrush="Transparent">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+                            <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource SubtleFillColorTertiaryBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="Chrome" Property="BorderBrush" Value="{DynamicResource FocusStrokeColorOuterBrush}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- A button that reads as a link ("Abrir configuración", "Repositorio en GitHub"). -->
+    <Style x:Key="Lunatic.LinkButton" TargetType="Button">
+        <Setter Property="Foreground" Value="{DynamicResource AccentTextFillColorPrimaryBrush}" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Chrome" Background="Transparent" BorderThickness="1" BorderBrush="Transparent" CornerRadius="4" Padding="4,2">
+                        <ContentPresenter x:Name="Text" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource SubtleFillColorTertiaryBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="Chrome" Property="BorderBrush" Value="{DynamicResource FocusStrokeColorOuterBrush}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!--
+        On/off switch. The WPF Fluent theme has the ToggleSwitch colors but no ToggleSwitch control, so this restyles
+        a CheckBox with the same system brushes. Set AutomationProperties.Name on each use.
+    -->
+    <Style x:Key="Lunatic.ToggleSwitch" TargetType="CheckBox">
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="CheckBox">
+                    <Grid Width="40" Height="20" Background="Transparent">
+                        <Border x:Name="Track"
+                                CornerRadius="10"
+                                BorderThickness="1"
+                                Background="{DynamicResource ControlAltFillColorSecondaryBrush}"
+                                BorderBrush="{DynamicResource ControlStrongStrokeColorDefaultBrush}" />
+                        <Border x:Name="Focus"
+                                Margin="-3"
+                                CornerRadius="13"
+                                BorderThickness="2"
+                                BorderBrush="{DynamicResource FocusStrokeColorOuterBrush}"
+                                Visibility="Collapsed" />
+                        <Ellipse x:Name="Knob"
+                                 Width="12"
+                                 Height="12"
+                                 Margin="4,0,0,0"
+                                 HorizontalAlignment="Left"
+                                 Fill="{DynamicResource ControlStrongFillColorDefaultBrush}" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Track" Property="Background" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+                            <Setter TargetName="Track" Property="BorderBrush" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+                            <Setter TargetName="Knob" Property="Fill" Value="{DynamicResource TextOnAccentFillColorPrimaryBrush}" />
+                            <Setter TargetName="Knob" Property="HorizontalAlignment" Value="Right" />
+                            <Setter TargetName="Knob" Property="Margin" Value="0,0,4,0" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Knob" Property="Width" Value="14" />
+                            <Setter TargetName="Knob" Property="Height" Value="14" />
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="Focus" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.4" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

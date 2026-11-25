@@ -58,6 +58,14 @@ public class XInputGamepadProviderTests
         Assert.Equal(DeviceKind.Gamepad, provider.Kind);
     }
 
+    [Fact]
+    public void Source_is_xinput()
+    {
+        IBatteryProvider provider = new XInputGamepadProvider(new FakeXInputApi([]), slot: 0);
+
+        Assert.Equal("XInput", provider.Source);
+    }
+
     [Theory]
     [InlineData(4u)]
     [InlineData(uint.MaxValue)]

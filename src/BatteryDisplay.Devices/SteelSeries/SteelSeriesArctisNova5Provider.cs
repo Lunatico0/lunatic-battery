@@ -22,6 +22,7 @@ public sealed class SteelSeriesArctisNova5Provider : IBatteryProvider
     public string Id => _entry.Id;
     public string Name => _entry.Name;
     public DeviceKind Kind => _entry.Kind;
+    public string Source => "Dongle SteelSeries";
     public int VendorId => _entry.VendorId;
     public IReadOnlyList<int> ProductIds => _entry.ProductIds;
     public int InterfaceNumber { get; }

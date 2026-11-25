@@ -1,16 +1,28 @@
-using BatteryDisplay.App.Polling;
 using BatteryDisplay.App.Presentation;
 
 namespace BatteryDisplay.App.Tray;
 
-/// <summary>One NotifyIcon bound to one provider. Owns the HICON it draws and destroys it when replaced.</summary>
-internal sealed class NotifyIconTray(ContextMenuStrip menu) : ITrayIcon, IDisposable
+/// <summary>
+/// One NotifyIcon bound to one icon slot (a device or the combined icon). Owns the HICON it draws and destroys it
+/// when replaced. A left click runs <c>onLeftClick</c>; the right click keeps opening the shared menu.
+/// </summary>
+internal sealed class NotifyIconTray : ITrayIcon, IDisposable
 {
-    private readonly NotifyIcon _notifyIcon = new() { ContextMenuStrip = menu, Visible = false };
+    private readonly NotifyIcon _notifyIcon;
     private Icon? _icon;
     private IntPtr _hIcon;
     private (TrayIconModel Model, Size Size)? _drawn;
     private bool _disposed;
+
+    public NotifyIconTray(ContextMenuStrip menu, Action onLeftClick)
+    {
+        _notifyIcon = new NotifyIcon { ContextMenuStrip = menu, Visible = false };
+        _notifyIcon.MouseClick += (_, e) =>
+        {
+            if (e.Button == MouseButtons.Left && !_disposed)
+                onLeftClick();
+        };
+    }
 
     public void Apply(TrayIconModel model)
     {

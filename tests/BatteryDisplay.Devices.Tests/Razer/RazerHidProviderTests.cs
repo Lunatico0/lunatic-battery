@@ -20,6 +20,14 @@ public class RazerHidProviderTests(ITestOutputHelper output)
     }
 
     [Fact]
+    public void Source_is_the_razer_dongle()
+    {
+        IBatteryProvider provider = new RazerHidProvider(Cobra);
+
+        Assert.Equal("Dongle Razer", provider.Source);
+    }
+
+    [Fact]
     public void Takes_vendor_product_ids_and_transaction_id_from_the_entry()
     {
         var entry = new CatalogEntry("razer-x", "razer-hid", "Razer X", DeviceKind.Keyboard, 0x1532, [0x0100],

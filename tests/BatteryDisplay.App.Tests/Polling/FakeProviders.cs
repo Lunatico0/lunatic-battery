@@ -2,13 +2,16 @@ using BatteryDisplay.Core;
 
 namespace BatteryDisplay.App.Tests.Polling;
 
-internal sealed class FakeProvider(string id, Func<CancellationToken, Task<BatteryStatus?>> read, DeviceKind kind = DeviceKind.Mouse) : IBatteryProvider
+internal sealed class FakeProvider(
+    string id, Func<CancellationToken, Task<BatteryStatus?>> read, DeviceKind kind = DeviceKind.Mouse, string source = "", string? name = null)
+    : IBatteryProvider
 {
     public int Reads;
 
     public string Id => id;
-    public string Name => id;
+    public string Name => name ?? id;
     public DeviceKind Kind => kind;
+    public string Source => source;
 
     public Task<BatteryStatus?> ReadAsync(CancellationToken ct)
     {
@@ -16,7 +19,8 @@ internal sealed class FakeProvider(string id, Func<CancellationToken, Task<Batte
         return read(ct);
     }
 
-    public static FakeProvider Returning(string id, BatteryStatus? status) => new(id, _ => Task.FromResult(status));
+    public static FakeProvider Returning(string id, BatteryStatus? status, DeviceKind kind = DeviceKind.Mouse) =>
+        new(id, _ => Task.FromResult(status), kind);
 
     public static FakeProvider Throwing(string id) => new(id, _ => throw new InvalidOperationException("device exploded"));
 

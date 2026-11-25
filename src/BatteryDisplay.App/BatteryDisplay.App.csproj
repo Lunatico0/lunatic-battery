@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
     <ProjectReference Include="..\BatteryDisplay.Core\BatteryDisplay.Core.csproj" />
@@ -9,8 +9,15 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
+    <!-- The tray stays WinForms (NotifyIcon and its message loop); the flyout and the settings window are WPF. -->
     <UseWindowsForms>true</UseWindowsForms>
+    <UseWPF>true</UseWPF>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- UseWPF drops System.IO from the implicit usings (Path clashes with System.Windows.Shapes.Path); the app uses no Shapes in C#. -->
+    <Using Include="System.IO" />
+  </ItemGroup>
 
 </Project>

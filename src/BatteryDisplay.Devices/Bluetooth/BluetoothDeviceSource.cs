@@ -49,6 +49,7 @@ public sealed class BluetoothBatteryProvider(IBluetoothDeviceApi api, Guid conta
     public string Id => BluetoothContainer.IdOf(containerId);
     public string Name => name;
     public DeviceKind Kind => kind;
+    public string Source => "Bluetooth";
 
     public Task<BatteryStatus?> ReadAsync(CancellationToken ct)
     {

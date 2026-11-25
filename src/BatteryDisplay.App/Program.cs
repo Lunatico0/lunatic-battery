@@ -1,5 +1,7 @@
 using BatteryDisplay.App.Discovery;
+using BatteryDisplay.App.Settings;
 using BatteryDisplay.App.Tray;
+using BatteryDisplay.App.Ui;
 using BatteryDisplay.Core;
 using BatteryDisplay.Devices.Bluetooth;
 using BatteryDisplay.Devices.Catalog;
@@ -28,7 +30,10 @@ static class Program
             new XInputDeviceSource(),
         ];
 
-        using var context = new TrayApplicationContext(new DeviceDiscovery(sources));
+        var settings = new SettingsStore(SettingsStore.DefaultPath);
+        using var context = new TrayApplicationContext(new DeviceDiscovery(sources), settings);
+        // The flyout and the settings window (WPF), on this same thread and message loop.
+        using var ui = new UiHost(context);
         Application.Run(context);
     }
 }

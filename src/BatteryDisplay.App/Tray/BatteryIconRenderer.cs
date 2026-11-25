@@ -6,8 +6,9 @@ using BatteryDisplay.Core;
 namespace BatteryDisplay.App.Tray;
 
 /// <summary>
-/// Draws a dark disc with a level ring (filled in eighths) around a device silhouette, all as vector paths
-/// at the requested size, so the icon stays crisp at every DPI scale.
+/// Draws a level ring (filled in eighths) around a device silhouette, all as vector paths at the requested size, so the
+/// icon stays crisp at every DPI scale. On a dark taskbar it sits on a dark disc; on a light one there is no disc, the
+/// colors come from <see cref="IconPalette.Light"/> and the glyph cuts are holes that show the taskbar.
 /// </summary>
 internal static class BatteryIconRenderer
 {
@@ -24,12 +25,16 @@ internal static class BatteryIconRenderer
         var s = MathF.Min(size.Width, size.Height);
         var center = new PointF(size.Width / 2f, size.Height / 2f);
 
-        using (var disc = new SolidBrush(IconPalette.Badge))
+        var palette = IconPalette.For(model.Theme);
+        if (palette.Disc is { } discColor)
+        {
+            using var disc = new SolidBrush(discColor);
             g.FillEllipse(disc, center.X - s / 2f, center.Y - s / 2f, s, s);
+        }
 
         var ring = RingGeometry.For(s);
-        DrawRing(g, center, ring, model);
-        DrawSilhouette(g, center, ring.SilhouetteRadius, model);
+        DrawRing(g, center, ring, model, palette);
+        DrawSilhouette(g, center, ring.SilhouetteRadius, model, palette);
         return bitmap;
     }
 
@@ -48,9 +53,9 @@ internal static class BatteryIconRenderer
         }
     }
 
-    private static void DrawRing(Graphics g, PointF center, RingGeometry ring, TrayIconModel model)
+    private static void DrawRing(Graphics g, PointF center, RingGeometry ring, TrayIconModel model, IconPalette palette)
     {
-        using var unlit = new SolidBrush(IconPalette.UnlitSegment);
+        using var unlit = new SolidBrush(palette.UnlitSegment);
         using (var track = AnnularSector(center, ring.Outer, ring.Inner, -90f, 360f))
             g.FillPath(unlit, track);
 
@@ -58,7 +63,7 @@ internal static class BatteryIconRenderer
             return;
 
         // GDI+ angles start at 3 o'clock and run clockwise, so 12 o'clock is -90.
-        using var lit = new SolidBrush(IconPalette.For(model.Color));
+        using var lit = new SolidBrush(palette.For(model.Color));
         using var level = AnnularSector(center, ring.Outer, ring.Inner, -90f, model.LitSegments * SegmentSweep);
         g.FillPath(lit, level);
     }
@@ -72,7 +77,7 @@ internal static class BatteryIconRenderer
         return path;
     }
 
-    private static void DrawSilhouette(Graphics g, PointF center, float radius, TrayIconModel model)
+    private static void DrawSilhouette(Graphics g, PointF center, float radius, TrayIconModel model, IconPalette palette)
     {
         var (body, cuts) = Silhouettes.For(model.Kind);
         using (body)
@@ -85,14 +90,24 @@ internal static class BatteryIconRenderer
             body.Transform(toPixels);
             cuts.Transform(toPixels);
 
-            using var fill = new SolidBrush(model.LevelKnown ? IconPalette.Silhouette : IconPalette.SilhouetteUnknown);
-            using var cut = new SolidBrush(IconPalette.Badge);
-            g.FillPath(fill, body);
-            g.FillPath(cut, cuts);
+            using var fill = new SolidBrush(model.LevelKnown ? palette.Silhouette : palette.SilhouetteUnknown);
+            if (palette.Disc is { } discColor)
+            {
+                g.FillPath(fill, body);
+                using var cut = new SolidBrush(discColor);
+                g.FillPath(cut, cuts);
+            }
+            else
+            {
+                // No disc to paint the cuts with: leave them out of the body so the taskbar shows through.
+                g.SetClip(cuts, CombineMode.Exclude);
+                g.FillPath(fill, body);
+                g.ResetClip();
+            }
         }
     }
 
-    /// <summary>Device glyphs in unit coordinates: a filled body plus cut lines painted in the disc color.</summary>
+    /// <summary>Device glyphs in unit coordinates: a filled body plus cut lines painted in the disc color (holes without a disc).</summary>
     private static class Silhouettes
     {
         // Windows 11 ships Segoe Fluent Icons; Segoe MDL2 Assets (Windows 10) has the same code points.

@@ -29,6 +29,7 @@ public sealed class XInputGamepadProvider : IBatteryProvider
     public string Id => $"xinput-{_slot}";
     public string Name => $"Control {_slot + 1}";
     public DeviceKind Kind => DeviceKind.Gamepad;
+    public string Source => "XInput";
 
     public Task<BatteryStatus?> ReadAsync(CancellationToken ct)
     {

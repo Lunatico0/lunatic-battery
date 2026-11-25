@@ -20,6 +20,14 @@ public class SteelSeriesArctisNova5ProviderTests(ITestOutputHelper output)
     }
 
     [Fact]
+    public void Source_is_the_steelseries_dongle()
+    {
+        IBatteryProvider provider = new SteelSeriesArctisNova5Provider(Nova5);
+
+        Assert.Equal("Dongle SteelSeries", provider.Source);
+    }
+
+    [Fact]
     public void Takes_ids_interface_and_usage_from_the_entry()
     {
         var entry = new CatalogEntry("nova-x", "steelseries-arctis-nova-5", "Nova X", DeviceKind.Headset, 0x1038, [0x2299],

@@ -16,5 +16,9 @@ public interface IBatteryProvider
     string Id { get; }
     string Name { get; }
     DeviceKind Kind { get; }
+
+    /// <summary>Short Spanish label for how the device is reached ("Bluetooth", "Dongle Razer", ...), shown under its name.</summary>
+    string Source => "";
+
     Task<BatteryStatus?> ReadAsync(CancellationToken ct);
 }

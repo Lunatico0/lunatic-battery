@@ -20,6 +20,14 @@ public class BluetoothBatteryProviderTests
     }
 
     [Fact]
+    public void Source_is_bluetooth()
+    {
+        _api.AddClassic("XION", battery: 10, connected: true);
+
+        Assert.Equal("Bluetooth", DiscoverSingle().Source);
+    }
+
+    [Fact]
     public async Task Rereads_the_property_on_every_call()
     {
         _api.AddLowEnergy("RK N80", battery: 39, connected: true);

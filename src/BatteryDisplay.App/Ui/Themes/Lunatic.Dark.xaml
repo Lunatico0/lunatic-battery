@@ -1,0 +1,23 @@
+<!--
+    Lunatic tones for the dark system theme. Same keys as Lunatic.Light.xaml; AppTheme swaps one for the other.
+    Battery tones match the tray icon (Tray/IconPalette.cs). Everything that is not a battery tone comes from the
+    Fluent theme. A future theme (Lunatic Glass) is another pair of dictionaries with these keys.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Ring segments, by LevelColor. -->
+    <SolidColorBrush x:Key="Lunatic.Tone.High" Color="#4ADE80" />
+    <SolidColorBrush x:Key="Lunatic.Tone.Medium" Color="#FBBF24" />
+    <SolidColorBrush x:Key="Lunatic.Tone.Low" Color="#F87171" />
+    <SolidColorBrush x:Key="Lunatic.Tone.Charging" Color="#22D3EE" />
+    <!-- Segments past the level. Lighter than the tray's #4A4A4A, which sits on a near-black disc, not on a card. -->
+    <SolidColorBrush x:Key="Lunatic.Tone.Unlit" Color="#5A5A5A" />
+
+    <!-- Device silhouette inside the ring: known level, and no reading. -->
+    <SolidColorBrush x:Key="Lunatic.Glyph" Color="#E5E5E5" />
+    <SolidColorBrush x:Key="Lunatic.Glyph.Unknown" Color="#8A8A8A" />
+
+    <!-- State text under the value ("Batería baja", "Cargando"); the other states use the secondary text color. -->
+    <SolidColorBrush x:Key="Lunatic.State.Low" Color="#FF9A9A" />
+    <SolidColorBrush x:Key="Lunatic.State.Charging" Color="#67E8F9" />
+</ResourceDictionary>
