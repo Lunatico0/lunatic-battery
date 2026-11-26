@@ -1,0 +1,96 @@
+# Builds a release on a v* tag and uploads it to GitHub Releases as a DRAFT. Publishing the draft is a manual step:
+# installed apps only see a release once it is published. See docs/RELEASING.md.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+env:
+  DOTNET_NOLOGO: true
+  # Never change PACK_ID after the first release: it names the install folder (%LocalAppData%\LunaticBattery) and is
+  # how installed apps recognize their updates.
+  PACK_ID: LunaticBattery
+  PACK_TITLE: Lunatic Battery
+  PACK_AUTHORS: Patricio Pittana
+  MAIN_EXE: BatteryDisplay.App.exe
+  # Same version as the Velopack package in src/BatteryDisplay.App/BatteryDisplay.App.csproj.
+  VPK_VERSION: 1.2.161
+
+jobs:
+  release:
+    runs-on: windows-latest
+    env:
+      # Code signing (Azure Artifact Signing). All optional: without them the release is built unsigned.
+      AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+      SIGN_ENDPOINT: ${{ vars.SIGN_ENDPOINT }}
+      SIGN_ACCOUNT: ${{ vars.SIGN_ACCOUNT }}
+      SIGN_PROFILE: ${{ vars.SIGN_PROFILE }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Check version and repository
+        id: meta
+        shell: pwsh
+        run: |
+          $project = 'src/BatteryDisplay.App/BatteryDisplay.App.csproj'
+          $version = (dotnet msbuild $project -getProperty:Version).Trim()
+          $repository = (dotnet msbuild $project -getProperty:RepositoryUrl).Trim()
+          if ("v$version" -ne '${{ github.ref_name }}') {
+            throw "Tag ${{ github.ref_name }} does not match Version $version in Directory.Build.props."
+          }
+          if ([string]::IsNullOrWhiteSpace($repository)) {
+            throw 'RepositoryUrl is empty in Directory.Build.props: this release would never find its updates.'
+          }
+          "version=$version" >> $env:GITHUB_OUTPUT
+
+      - name: Test
+        run: dotnet test BatteryDisplay.slnx -c Release
+
+      - name: Publish
+        run: dotnet publish src/BatteryDisplay.App/BatteryDisplay.App.csproj -c Release -r win-x64 --self-contained -o publish
+
+      - name: Install vpk
+        run: dotnet tool install -g vpk --version ${{ env.VPK_VERSION }}
+
+      # The previous release lets vpk build a delta package. There is none before the first release.
+      - name: Download previous release
+        continue-on-error: true
+        run: vpk download github --repoUrl ${{ github.server_url }}/${{ github.repository }} --token ${{ secrets.GITHUB_TOKEN }} --outputDir Releases
+
+      - name: Prepare signing
+        id: sign
+        if: env.AZURE_CLIENT_ID != '' && env.SIGN_ENDPOINT != ''
+        shell: pwsh
+        run: |
+          $metadata = @{
+            Endpoint = $env:SIGN_ENDPOINT
+            CodeSigningAccountName = $env:SIGN_ACCOUNT
+            CertificateProfileName = $env:SIGN_PROFILE
+          } | ConvertTo-Json
+          $path = Join-Path $env:RUNNER_TEMP 'signing-metadata.json'
+          Set-Content -Path $path -Value $metadata
+          "args=--azureTrustedSignFile `"$path`"" >> $env:GITHUB_OUTPUT
+
+      - name: Pack
+        shell: pwsh
+        run: |
+          if ('${{ steps.sign.outputs.args }}' -eq '') { Write-Warning 'No signing secrets: building an unsigned release.' }
+          vpk pack --packId $env:PACK_ID --packVersion ${{ steps.meta.outputs.version }} --packDir publish `
+            --mainExe $env:MAIN_EXE --packTitle "$env:PACK_TITLE" --packAuthors "$env:PACK_AUTHORS" `
+            --icon src/BatteryDisplay.App/Assets/lunatic-battery.ico --outputDir Releases ${{ steps.sign.outputs.args }}
+
+      - name: Upload draft release
+        run: >
+          vpk upload github --repoUrl ${{ github.server_url }}/${{ github.repository }}
+          --token ${{ secrets.GITHUB_TOKEN }} --outputDir Releases
+          --releaseName "${{ env.PACK_TITLE }} ${{ steps.meta.outputs.version }}" --tag ${{ github.ref_name }}

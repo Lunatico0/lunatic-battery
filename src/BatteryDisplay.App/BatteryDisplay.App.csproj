@@ -13,11 +13,28 @@
     <UseWindowsForms>true</UseWindowsForms>
     <UseWPF>true</UseWPF>
     <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Per monitor (v2) so WPF redraws the flyout and windows at each monitor's scale instead of Windows stretching
+         them, and screen coordinates are physical pixels everywhere. ApplicationConfiguration.Initialize applies it. -->
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
+    <!-- Embedded in the exe (Explorer, taskbar, WPF windows without their own Icon). release.yml passes the same file
+         to vpk pack for Setup.exe and the shortcuts. -->
+    <ApplicationIcon>Assets\lunatic-battery.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
     <!-- UseWPF drops System.IO from the implicit usings (Path clashes with System.Windows.Shapes.Path); the app uses no Shapes in C#. -->
     <Using Include="System.IO" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Install, update and uninstall through GitHub Releases. Keep it on the same version as the vpk tool in
+         .github/workflows/release.yml. -->
+    <PackageReference Include="Velopack" Version="1.2.161" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- RepositoryUrl comes from Directory.Build.props; Updates/AppRepository reads it back at run time. -->
+    <AssemblyMetadata Include="RepositoryUrl" Value="$(RepositoryUrl)" />
   </ItemGroup>
 
 </Project>
