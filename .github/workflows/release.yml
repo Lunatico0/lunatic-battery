@@ -53,8 +53,9 @@ jobs:
           }
           "version=$version" >> $env:GITHUB_OUTPUT
 
+      # Hardware tests need the real devices plugged in, which the runner never has.
       - name: Test
-        run: dotnet test BatteryDisplay.slnx -c Release
+        run: dotnet test BatteryDisplay.slnx -c Release --filter "Category!=Hardware"
 
       - name: Publish
         run: dotnet publish src/BatteryDisplay.App/BatteryDisplay.App.csproj -c Release -r win-x64 --self-contained -o publish
