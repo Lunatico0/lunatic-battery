@@ -11,5 +11,11 @@
     <!-- The one place for the GitHub repository, as https://github.com/<owner>/<repo>. The app checks its releases
          for updates; while this is empty, updates stay off. -->
     <RepositoryUrl>https://github.com/Lunatico0/lunatic-battery</RepositoryUrl>
+    <!-- File properties of every assembly. Code signing (SignPath) checks the product name and version of each file
+         it signs, so they stay the same across the whole product. -->
+    <Product>Lunatic Battery</Product>
+    <Company>Patricio Pittana</Company>
+    <Authors>Patricio Pittana</Authors>
+    <Copyright>Copyright (c) 2026 Patricio Pittana. MIT License.</Copyright>
   </PropertyGroup>
 </Project>

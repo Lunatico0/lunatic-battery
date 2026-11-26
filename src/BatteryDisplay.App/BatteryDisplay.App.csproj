@@ -19,6 +19,8 @@
     <!-- Embedded in the exe (Explorer, taskbar, WPF windows without their own Icon). release.yml passes the same file
          to vpk pack for Setup.exe and the shortcuts. -->
     <ApplicationIcon>Assets\lunatic-battery.ico</ApplicationIcon>
+    <!-- File description of the exe: the name Task Manager and the startup apps list show. -->
+    <AssemblyTitle>Lunatic Battery</AssemblyTitle>
   </PropertyGroup>
 
   <ItemGroup>
