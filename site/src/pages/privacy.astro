@@ -1,0 +1,106 @@
+---
+import LegalPage from '../components/LegalPage.astro';
+
+const repo = 'https://github.com/Lunatico0/lunatic-battery';
+const codeSigningHref = `${import.meta.env.BASE_URL}code-signing/`;
+---
+
+<LegalPage title="Privacy policy" updated="2026-11-26">
+  <p>
+    This policy covers Lunatic Battery, a free, open source Windows tray app that shows the battery level of wireless
+    peripherals, and this website. The app has no accounts, no telemetry, no analytics and no crash reporting service.
+    The maintainer does not collect, receive or store any data about you or your devices.
+  </p>
+
+  <h2>What the app does on your PC</h2>
+  <p>
+    The app reads battery levels from your devices locally, through Windows (HID, Bluetooth and XInput). Those readings
+    are shown in the tray and are never sent anywhere.
+  </p>
+
+  <h2>What the app sends over the network</h2>
+  <p>The only thing the app does on the network by itself is check for updates:</p>
+  <ul>
+    <li>
+      An installed copy contacts GitHub to look for a newer release of
+      <a href={repo}>Lunatico0/lunatic-battery</a>: one minute after the app starts, then every 6 hours while it runs,
+      and whenever you pick "Buscar actualizaciones" (Check for updates) in the tray menu. A copy run straight from a
+      build folder does not check.
+    </li>
+    <li>
+      These are normal HTTPS requests to GitHub. GitHub sees your IP address, as with any download. The app sends no
+      personal data, device names, battery readings or settings.
+    </li>
+    <li>
+      When a newer release exists, it is downloaded from GitHub in the background and installed when the app exits or
+      restarts.
+    </li>
+    <li>
+      There is no setting to turn the automatic check off. To stop it, block the app in your firewall: the battery
+      display keeps working, it just stops updating.
+    </li>
+  </ul>
+  <p>
+    Besides that, the app opens a web page only when you ask for it: the "Repositorio en GitHub" link in the settings
+    window opens the project page on GitHub in your browser.
+  </p>
+
+  <h2>What the app keeps on your PC</h2>
+  <p>Everything below stays on your computer. None of it is sent anywhere.</p>
+  <ul>
+    <li>
+      Settings: <code>%LOCALAPPDATA%\LunaticBattery\settings.json</code>. It holds your preferences (tray icon mode,
+      notifications, appearance) and, per device, the name you gave it, whether it is pinned or hidden, its low
+      battery threshold and whether to notify you when it is charged.
+    </li>
+    <li>
+      Diagnostic log: <code>%LOCALAPPDATA%\LunaticBattery\logs\lunatic-battery.log</code>, with one older copy
+      (<code>lunatic-battery.1.log</code>) once it reaches 1 MB. It records the app version, the Windows version, how
+      the app was installed and the path it runs from, plus device discovery events and errors. You can open its folder
+      from the tray menu ("Abrir registro").
+    </li>
+    <li>
+      Start with Windows: if you turn it on, the app adds an entry to
+      <code>HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run</code>. Uninstalling the app removes it.
+    </li>
+  </ul>
+
+  <h2>The diagnostic report</h2>
+  <p>
+    The "Mi dispositivo no aparece" window builds a report of what Windows sees of your devices (HID, Bluetooth and
+    XInput), with the app and Windows versions. It leaves out device paths and serial numbers, and hides Bluetooth
+    addresses. The report is built on your PC and is not sent anywhere: you can copy it or save it as a text file, and
+    it only leaves your computer if you share it yourself, for example in a GitHub issue.
+  </p>
+
+  <h2>Third party services</h2>
+  <ul>
+    <li>
+      GitHub: downloads, updates, source code and issues are hosted on GitHub. When you download the app, the app checks
+      for updates, or you visit the repository, GitHub processes that request under the
+      <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">
+        GitHub General Privacy Statement</a
+      >.
+    </li>
+    <li>
+      GitHub Pages: this website is hosted on GitHub Pages, which may log your IP address when you visit it. The site
+      has no cookies, no analytics and no tracking scripts.
+    </li>
+    <li>
+      Google Fonts: this website loads its fonts from Google Fonts (<code>fonts.googleapis.com</code> and
+      <code>fonts.gstatic.com</code>), so your browser sends Google your IP address when it loads a page. See the
+      <a href="https://policies.google.com/privacy">Google Privacy Policy</a>.
+    </li>
+  </ul>
+
+  <h2>Code signing</h2>
+  <p>
+    How releases are built and signed is described in the <a href={codeSigningHref}>code signing policy</a>.
+  </p>
+
+  <h2>Contact</h2>
+  <p>
+    Questions about this policy go to the maintainer, Patricio Pittana, through
+    <a href={`${repo}/issues`}>the project's GitHub issues</a>.
+  </p>
+</LegalPage>

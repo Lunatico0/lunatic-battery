@@ -1,0 +1,72 @@
+---
+import LegalPage from '../components/LegalPage.astro';
+
+const repo = 'https://github.com/Lunatico0/lunatic-battery';
+const maintainer = 'https://github.com/Lunatico0';
+const privacyHref = `${import.meta.env.BASE_URL}privacy/`;
+---
+
+<LegalPage title="Code signing policy" updated="2026-11-26">
+  <p class="legal-callout">
+    Free code signing provided by <a href="https://signpath.io">SignPath.io</a>, certificate by <a href="https://signpath.org">SignPath Foundation</a>
+  </p>
+
+  <h2>What gets signed</h2>
+  <p>
+    Lunatic Battery is a free, open source Windows tray app (MIT license). Only binaries built from the public source
+    code in <a href={repo}>github.com/Lunatico0/lunatic-battery</a> are signed: the installer and the app files of each
+    release published on the <a href={`${repo}/releases`}>Releases page</a>.
+  </p>
+
+  <h2>How a release is built</h2>
+  <ul>
+    <li>
+      Every release is built by GitHub Actions from the public repository, with the workflow
+      <a href={`${repo}/blob/HEAD/.github/workflows/release.yml`}><code>.github/workflows/release.yml</code></a>.
+    </li>
+    <li>
+      The workflow runs only when a version tag (<code>v*</code>) is pushed. It runs the test suite, builds the app and
+      uploads the result as a draft release.
+    </li>
+    <li>Each signing request is approved manually by the maintainer before the release is signed.</li>
+    <li>Until the SignPath Foundation application is approved, releases are unsigned.</li>
+  </ul>
+
+  <h2>Team roles</h2>
+  <ul>
+    <li>Committers and reviewers: <a href={maintainer}>Patricio Pittana</a></li>
+    <li>Approvers: <a href={maintainer}>Patricio Pittana</a></li>
+  </ul>
+  <p>
+    The project has a single maintainer, who reviews every change before it is merged.
+  </p>
+
+  <h2>Privacy</h2>
+  <p>
+    Lunatic Battery has no telemetry, no analytics and no accounts. The only information it transfers to another
+    networked system on its own is its update check:
+  </p>
+  <ul>
+    <li>
+      An installed copy contacts GitHub to look for a newer release of
+      <a href={repo}>Lunatico0/lunatic-battery</a>: one minute after the app starts, then every 6 hours while it runs,
+      and whenever the user picks "Buscar actualizaciones" (Check for updates) in the tray menu.
+    </li>
+    <li>
+      These are normal HTTPS requests to GitHub. GitHub sees your IP address, as with any download. The app sends no
+      personal data, device names, battery readings or settings.
+    </li>
+    <li>
+      When a newer release exists, it is downloaded from GitHub in the background and installed when the app exits or restarts.
+    </li>
+    <li>
+      There is no setting to turn the automatic check off. To stop it, block the app in your firewall: the battery
+      display keeps working, it just stops updating.
+    </li>
+  </ul>
+  <p>
+    Apart from that, the app only opens a web page when you click a link in it, and its diagnostic report stays on
+    your PC unless you copy or save it and share it yourself. The full details are in the
+    <a href={privacyHref}>privacy policy</a>.
+  </p>
+</LegalPage>

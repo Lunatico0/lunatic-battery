@@ -1,0 +1,134 @@
+---
+// Shell for the policy pages (code signing, privacy): same ground, aurora and footer as the landing,
+// a compact header that leads back home, and a readable prose column. The content goes in the slot.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Aurora from './Aurora.astro';
+import Footer from './Footer.astro';
+
+interface Props {
+  title: string;
+  updated: string;
+}
+
+const { title, updated } = Astro.props;
+const homeHref = import.meta.env.BASE_URL;
+const iconHref = `${import.meta.env.BASE_URL}favicon.svg`;
+---
+
+<BaseLayout>
+  <div
+    lang="en"
+    style="position: relative; min-height: 100vh; overflow: hidden; background: var(--ground); color: var(--ink); font-family: var(--font-sans); font-size: 15px; line-height: 22px;"
+  >
+    <Aurora />
+    <div class="lg-shell legal-shell">
+      <header
+        class="lg-glass"
+        style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 12px 12px 16px; background: var(--glass-1); border: 1px solid var(--glass-edge); border-radius: var(--radius-pill); box-shadow: var(--shadow-glass);"
+      >
+        <a href={homeHref} style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink);">
+          <img src={iconHref} alt="" width="36" height="36" style="display: block; width: 36px; height: 36px;" />
+          <span style="font-size: 17px; font-weight: 650; letter-spacing: -0.015em;">Lunatic Battery</span>
+        </a>
+        <a
+          class="lg-btn lg-ghost"
+          href={homeHref}
+          style="padding: 10px 14px; border-radius: var(--radius-sm); color: var(--ink-muted); text-decoration: none; font-weight: 600;"
+        >
+          Back to home
+        </a>
+      </header>
+
+      <main
+        class="lg-glass legal-card"
+        style="background: var(--glass-1); border: 1px solid var(--glass-edge); border-radius: var(--radius-lg); box-shadow: var(--shadow-glass);"
+      >
+        <article class="legal-prose">
+          <h1>{title}</h1>
+          <p class="legal-updated">Last updated: {updated}</p>
+          <slot />
+        </article>
+      </main>
+
+      <Footer />
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .legal-shell {
+    gap: 48px;
+  }
+  .legal-card {
+    padding: 48px;
+  }
+  @media (max-width: 640px) {
+    .legal-card {
+      padding: 24px 20px;
+    }
+  }
+  .legal-prose {
+    max-width: 720px;
+    margin: 0 auto;
+    font-size: 16px;
+    line-height: 26px;
+    overflow-wrap: anywhere;
+  }
+  .legal-prose h1 {
+    margin: 0;
+    font-size: clamp(32px, 5vw, 44px);
+    line-height: 1.1;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    font-variation-settings: 'opsz' 72;
+    text-wrap: balance;
+  }
+  .legal-updated {
+    margin: 12px 0 0;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--ink-muted);
+  }
+  .legal-prose :global(h2) {
+    margin: 40px 0 0;
+    font-size: 22px;
+    line-height: 28px;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    font-variation-settings: 'opsz' 32;
+  }
+  .legal-prose :global(h3) {
+    margin: 24px 0 0;
+    font-size: 17px;
+    line-height: 24px;
+    font-weight: 600;
+  }
+  .legal-prose :global(p),
+  .legal-prose :global(ul) {
+    margin: 12px 0 0;
+    text-wrap: pretty;
+  }
+  .legal-prose :global(ul) {
+    padding-left: 22px;
+  }
+  .legal-prose :global(li + li) {
+    margin-top: 6px;
+  }
+  .legal-prose :global(code) {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    padding: 1px 6px;
+    border-radius: 6px;
+    background: var(--glass-2);
+    border: 1px solid var(--glass-edge);
+  }
+  .legal-prose :global(.legal-callout) {
+    margin: 24px 0 0;
+    padding: 16px 20px;
+    border-radius: var(--radius-sm);
+    background: var(--brand-soft);
+    border: 1px solid var(--glass-edge);
+    font-weight: 600;
+  }
+</style>

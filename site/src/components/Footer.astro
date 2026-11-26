@@ -1,13 +1,17 @@
 ---
+const codeSigningHref = `${import.meta.env.BASE_URL}code-signing/`;
+const privacyHref = `${import.meta.env.BASE_URL}privacy/`;
 ---
 
 <footer
   style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px; padding-top: 24px; border-top: 1px solid var(--glass-edge); font-size: 14px; color: var(--ink-muted);"
 >
   <span>Hecho por Patricio Pittana, de noche.</span>
-  <span style="display: flex; gap: 20px;">
+  <span style="display: flex; flex-wrap: wrap; gap: 8px 20px;">
     <a href="https://github.com/Lunatico0/lunatic-battery">GitHub</a>
     <a href="https://github.com/Lunatico0/lunatic-battery/releases">Versiones</a>
     <a href="https://github.com/Lunatico0/lunatic-battery/blob/HEAD/LICENSE">Licencia</a>
+    <a href={codeSigningHref}>Code signing policy</a>
+    <a href={privacyHref}>Privacy policy</a>
   </span>
 </footer>
