@@ -85,6 +85,22 @@ public class DeviceDiscoveryTests
     private static Task<IReadOnlyList<IBatteryProvider>> DiscoverWithin(DeviceDiscovery discovery) =>
         Task.Run(discovery.Discover).WaitAsync(TimeSpan.FromSeconds(5));
 
+    // On a busy machine (the 4 core CI runner, with stuck sources from other tests holding pool threads) a source
+    // queued on the thread pool can start only after its timeout, and the whole round comes back empty.
+    [Fact]
+    public async Task Sources_RunOffTheThreadPool_SoABusyPoolCannotTimeThemOut()
+    {
+        bool? onPool = null;
+        var source = new FakeSource(FakeProvider.Returning("a", null))
+        {
+            OnDiscover = () => onPool = Thread.CurrentThread.IsThreadPoolThread,
+        };
+
+        await DiscoverWithin(new DeviceDiscovery([source], log: _ => { }, ShortTimeout));
+
+        Assert.False(onPool);
+    }
+
     [Fact]
     public async Task HangingSource_IsSkippedAfterItsTimeout_AndTheOthersStillShow()
     {

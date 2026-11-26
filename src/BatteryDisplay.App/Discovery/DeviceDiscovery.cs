@@ -118,8 +118,10 @@ public sealed class DeviceDiscovery(IReadOnlyList<IDeviceSource> sources, Action
         }).ToList();
     }
 
-    // Never faults, so waiting on it cannot throw and the error is logged on the caller's thread.
-    private static Task<Outcome> Start(IDeviceSource source) => Task.Run(() =>
+    // Never faults, so waiting on it cannot throw and the error is logged on the caller's thread. Each call gets its own
+    // thread (LongRunning): a source blocks on the PnP lock, and queued on a busy thread pool it could start only after
+    // its timeout had already passed.
+    private static Task<Outcome> Start(IDeviceSource source) => Task.Factory.StartNew(() =>
     {
         var started = Stopwatch.GetTimestamp();
         try
@@ -130,5 +132,5 @@ public sealed class DeviceDiscovery(IReadOnlyList<IDeviceSource> sources, Action
         {
             return new Outcome([], ex, Stopwatch.GetElapsedTime(started));
         }
-    });
+    }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
 }
