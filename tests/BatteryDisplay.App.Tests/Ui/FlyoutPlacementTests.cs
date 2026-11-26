@@ -83,4 +83,62 @@ public class FlyoutPlacementTests
 
         Assert.Equal(100, FlyoutPlacement.Place(workArea, TaskbarEdge.Bottom, Flyout, Margin).X);
     }
+
+    // Mixed DPI: a 100% primary and a 150% monitor to its right, both in physical pixels.
+    private static readonly FlyoutMonitor At100 = new(new Rectangle(0, 0, 1920, 1080), new Rectangle(0, 0, 1920, 1032), 1.0);
+    private static readonly FlyoutMonitor At150 = new(new Rectangle(1920, 0, 3840, 2160), new Rectangle(1920, 0, 3840, 2088), 1.5);
+    private static readonly FlyoutMonitor[] Monitors = [At100, At150];
+
+    [Fact]
+    public void MonitorAt_IsTheMonitorUnderTheClick()
+    {
+        Assert.Equal(At150, FlyoutPlacement.MonitorAt(Monitors, new Point(5600, 2120)));
+    }
+
+    [Fact]
+    public void MonitorAt_OutsideEveryMonitor_TakesTheNearest()
+    {
+        Assert.Equal(At100, FlyoutPlacement.MonitorAt(Monitors, new Point(-5, 500)));
+    }
+
+    [Fact]
+    public void MonitorAt_NoMonitors_IsNull()
+    {
+        Assert.Null(FlyoutPlacement.MonitorAt([], new Point(0, 0)));
+    }
+
+    [Fact]
+    public void MovingTo150_ScalesTheWindowAndTheMarginToThatMonitor()
+    {
+        // Still on the 100% monitor: WPF resizes it to 540x600 once it lands on the 150% one.
+        var corner = FlyoutPlacement.Place(At150, new Size(360, 400), windowScale: 1.0, marginDips: 12);
+
+        Assert.Equal(new Point(1920 + 3840 - 18 - 540, 2088 - 18 - 600), corner);
+    }
+
+    [Fact]
+    public void AlreadyAtTheMonitorScale_KeepsTheRealWindowSize()
+    {
+        var corner = FlyoutPlacement.Place(At150, new Size(541, 601), windowScale: 1.5, marginDips: 12);
+
+        Assert.Equal(new Point(1920 + 3840 - 18 - 541, 2088 - 18 - 601), corner);
+    }
+
+    [Fact]
+    public void MovingBackTo100_UsesThatMonitorsScale()
+    {
+        var corner = FlyoutPlacement.Place(At100, new Size(540, 600), windowScale: 1.5, marginDips: 12);
+
+        Assert.Equal(new Point(1920 - 12 - 360, 1032 - 12 - 400), corner);
+    }
+
+    [Fact]
+    public void LeftMonitorAt125_WithNegativeOrigin_StaysInsideItsWorkArea()
+    {
+        var at125 = new FlyoutMonitor(new Rectangle(-2400, -300, 2400, 1350), new Rectangle(-2400, -300, 2400, 1290), 1.25);
+
+        var corner = FlyoutPlacement.Place(at125, new Size(360, 400), windowScale: 1.0, marginDips: 12);
+
+        Assert.Equal(new Point(-15 - 450, -300 + 1290 - 15 - 500), corner);
+    }
 }

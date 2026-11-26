@@ -36,6 +36,15 @@ public class XInputDeviceSourceTests
     }
 
     [Fact]
+    public void Gamepad_is_reached_over_xinput_and_has_no_physical_identity()
+    {
+        var provider = Assert.Single(new XInputDeviceSource(new FakeXInputApi(new() { [0] = Full })).Discover());
+
+        Assert.Equal(DeviceChannel.XInput, provider.Channel);
+        Assert.Null(provider.ContainerId);
+    }
+
+    [Fact]
     public void Rediscovery_returns_the_same_provider_instance()
     {
         var source = new XInputDeviceSource(new FakeXInputApi(new() { [1] = Full }));

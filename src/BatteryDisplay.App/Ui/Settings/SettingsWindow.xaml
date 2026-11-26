@@ -16,41 +16,132 @@
             <Setter Property="Visibility" Value="Collapsed" />
         </Style>
 
+        <!--
+            Dimming. Outside high contrast a hidden device and the options it turns off fade out. In high contrast a fade
+            breaks the contrast of the system colors, so the text and the ring take the system disabled text color
+            (GrayText) instead, at full opacity.
+        -->
         <Style x:Key="CardTitle" TargetType="TextBlock" BasedOn="{StaticResource Lunatic.PrimaryText}">
             <Setter Property="TextTrimming" Value="None" />
             <Setter Property="TextWrapping" Value="Wrap" />
+            <Style.Triggers>
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding IsEnabled, RelativeSource={RelativeSource Self}}" Value="False" />
+                        <Condition Binding="{Binding Path=(SystemParameters.HighContrast)}" Value="True" />
+                    </MultiDataTrigger.Conditions>
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" />
+                </MultiDataTrigger>
+            </Style.Triggers>
         </Style>
 
         <Style x:Key="CardHint" TargetType="TextBlock" BasedOn="{StaticResource Lunatic.SecondaryText}">
             <Setter Property="TextTrimming" Value="None" />
             <Setter Property="TextWrapping" Value="Wrap" />
             <Setter Property="Margin" Value="0,2,0,0" />
+            <Style.Triggers>
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding IsEnabled, RelativeSource={RelativeSource Self}}" Value="False" />
+                        <Condition Binding="{Binding Path=(SystemParameters.HighContrast)}" Value="True" />
+                    </MultiDataTrigger.Conditions>
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" />
+                </MultiDataTrigger>
+            </Style.Triggers>
         </Style>
 
-        <!-- A hidden device stays in the list, dimmed, so it can be shown again. -->
+        <!-- A hidden device stays in the list, dimmed, so it can be shown again ("Oculto" says it in words too). -->
         <Style x:Key="HiddenDeviceDim" TargetType="FrameworkElement">
             <Style.Triggers>
-                <DataTrigger Binding="{Binding Hidden}" Value="True">
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding Hidden}" Value="True" />
+                        <Condition Binding="{Binding Path=(SystemParameters.HighContrast)}" Value="False" />
+                    </MultiDataTrigger.Conditions>
                     <Setter Property="Opacity" Value="0.5" />
-                </DataTrigger>
+                </MultiDataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="HiddenDeviceRing" TargetType="controls:BatteryRing" BasedOn="{StaticResource Lunatic.DeviceRing}">
+            <Style.Triggers>
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding Hidden}" Value="True" />
+                        <Condition Binding="{Binding Path=(SystemParameters.HighContrast)}" Value="True" />
+                    </MultiDataTrigger.Conditions>
+                    <Setter Property="LitBrush" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" />
+                    <Setter Property="GlyphBrush" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" />
+                </MultiDataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="HiddenDeviceName" TargetType="TextBlock" BasedOn="{StaticResource Lunatic.PrimaryText}">
+            <Style.Triggers>
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding Hidden}" Value="True" />
+                        <Condition Binding="{Binding Path=(SystemParameters.HighContrast)}" Value="True" />
+                    </MultiDataTrigger.Conditions>
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" />
+                </MultiDataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="HiddenDeviceSource" TargetType="TextBlock" BasedOn="{StaticResource Lunatic.SecondaryText}">
+            <Style.Triggers>
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding Hidden}" Value="True" />
+                        <Condition Binding="{Binding Path=(SystemParameters.HighContrast)}" Value="True" />
+                    </MultiDataTrigger.Conditions>
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" />
+                </MultiDataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="HiddenDeviceValue" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+            <Style.Triggers>
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding Hidden}" Value="True" />
+                        <Condition Binding="{Binding Path=(SystemParameters.HighContrast)}" Value="False" />
+                    </MultiDataTrigger.Conditions>
+                    <Setter Property="Opacity" Value="0.5" />
+                </MultiDataTrigger>
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding Hidden}" Value="True" />
+                        <Condition Binding="{Binding Path=(SystemParameters.HighContrast)}" Value="True" />
+                    </MultiDataTrigger.Conditions>
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" />
+                </MultiDataTrigger>
             </Style.Triggers>
         </Style>
 
         <!-- The device options while the device is hidden: still visible, but clearly off. -->
         <Style x:Key="DeviceOptions" TargetType="StackPanel">
             <Style.Triggers>
-                <Trigger Property="IsEnabled" Value="False">
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding IsEnabled, RelativeSource={RelativeSource Self}}" Value="False" />
+                        <Condition Binding="{Binding Path=(SystemParameters.HighContrast)}" Value="False" />
+                    </MultiDataTrigger.Conditions>
                     <Setter Property="Opacity" Value="0.6" />
-                </Trigger>
+                </MultiDataTrigger>
             </Style.Triggers>
         </Style>
     </Window.Resources>
 
-    <Grid>
+    <!-- Lunatic Glass draws its backdrop and two glass panels (navigation, content); in Fluent they are transparent. -->
+    <Grid Background="{DynamicResource Lunatic.Backdrop}">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="240" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
+        <Border Grid.Column="0" Style="{StaticResource Lunatic.Panel}" />
+        <Border Grid.Column="1" Style="{StaticResource Lunatic.Panel}" />
 
         <!-- Navigation -->
         <DockPanel Grid.Column="0" Margin="8,12,4,12">
@@ -115,47 +206,54 @@
                            Text="{x:Static flyout:FlyoutViewModel.EmptyText}"
                            Visibility="{Binding IsEmpty, Converter={StaticResource Lunatic.BoolToVisibility}}" />
 
-                <ListBox Grid.Column="0"
-                         Margin="0,0,0,16"
-                         ItemsSource="{Binding Devices}"
-                         SelectedItem="{Binding SelectedDevice}"
-                         HorizontalContentAlignment="Stretch"
-                         Background="Transparent"
-                         BorderThickness="0"
-                         AutomationProperties.Name="Dispositivos"
-                         Visibility="{Binding HasSelection, Converter={StaticResource Lunatic.BoolToVisibility}}">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <Grid Margin="0,4">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <Border Style="{StaticResource HiddenDeviceDim}">
-                                    <controls:BatteryRing Width="32" Height="32" Style="{StaticResource Lunatic.DeviceRing}" />
-                                </Border>
-                                <StackPanel Grid.Column="1" Margin="10,0" VerticalAlignment="Center" Style="{StaticResource HiddenDeviceDim}">
-                                    <TextBlock Style="{StaticResource Lunatic.PrimaryText}" Text="{Binding Name}" />
-                                    <TextBlock Style="{StaticResource Lunatic.SecondaryText}" Text="{Binding Source}" />
-                                </StackPanel>
-                                <StackPanel Grid.Column="2" VerticalAlignment="Center">
-                                    <TextBlock HorizontalAlignment="Right"
-                                               FontSize="14"
-                                               FontWeight="SemiBold"
-                                               Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-                                               Style="{StaticResource HiddenDeviceDim}"
-                                               Text="{Binding ValueText}" />
-                                    <TextBlock HorizontalAlignment="Right"
-                                               Style="{StaticResource Lunatic.SecondaryText}"
-                                               FontSize="12"
-                                               Text="Oculto"
-                                               Visibility="{Binding Hidden, Converter={StaticResource Lunatic.BoolToVisibility}}" />
-                                </StackPanel>
-                            </Grid>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
+                <!-- Under the list, and still there when the list is empty: that is when it matters most. -->
+                <DockPanel Grid.Column="0" Margin="0,0,0,16">
+                    <Button DockPanel.Dock="Bottom"
+                            Margin="-4,8,0,0"
+                            HorizontalAlignment="Left"
+                            Style="{StaticResource Lunatic.LinkButton}"
+                            FontSize="14"
+                            Content="Mi dispositivo no aparece"
+                            Command="{Binding ShowDiagnosticsCommand}" />
+                    <ListBox ItemsSource="{Binding Devices}"
+                             SelectedItem="{Binding SelectedDevice}"
+                             HorizontalContentAlignment="Stretch"
+                             Background="Transparent"
+                             BorderThickness="0"
+                             AutomationProperties.Name="Dispositivos"
+                             Visibility="{Binding HasSelection, Converter={StaticResource Lunatic.BoolToVisibility}}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Style="{StaticResource HiddenDeviceDim}">
+                                        <controls:BatteryRing Width="32" Height="32" Style="{StaticResource HiddenDeviceRing}" />
+                                    </Border>
+                                    <StackPanel Grid.Column="1" Margin="10,0" VerticalAlignment="Center" Style="{StaticResource HiddenDeviceDim}">
+                                        <TextBlock Style="{StaticResource HiddenDeviceName}" Text="{Binding Name}" />
+                                        <TextBlock Style="{StaticResource HiddenDeviceSource}" Text="{Binding Source}" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                        <TextBlock HorizontalAlignment="Right"
+                                                   FontSize="14"
+                                                   FontWeight="SemiBold"
+                                                   Style="{StaticResource HiddenDeviceValue}"
+                                                   Text="{Binding ValueText}" />
+                                        <TextBlock HorizontalAlignment="Right"
+                                                   Style="{StaticResource Lunatic.SecondaryText}"
+                                                   FontSize="12"
+                                                   Text="Oculto"
+                                                   Visibility="{Binding Hidden, Converter={StaticResource Lunatic.BoolToVisibility}}" />
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
 
                 <ScrollViewer Grid.Column="1"
                               Margin="16,0,0,0"
@@ -288,22 +386,38 @@
                         </Style.Triggers>
                     </Style>
                 </ScrollViewer.Style>
-                <ItemsControl Margin="0,0,0,24" ItemsSource="{Binding TrayModes}" Focusable="False">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Border Style="{StaticResource Lunatic.Card}">
-                                <RadioButton GroupName="TrayIconMode"
-                                             IsChecked="{Binding IsSelected}"
-                                             AutomationProperties.Name="{Binding Title}">
-                                    <StackPanel Margin="4,0,0,0">
-                                        <TextBlock Style="{StaticResource CardTitle}" FontWeight="SemiBold" Text="{Binding Title}" />
-                                        <TextBlock Style="{StaticResource CardHint}" Text="{Binding Description}" />
-                                    </StackPanel>
-                                </RadioButton>
-                            </Border>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
+                <StackPanel Margin="0,0,0,24">
+                    <ItemsControl ItemsSource="{Binding TrayModes}" Focusable="False">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Style="{StaticResource Lunatic.Card}">
+                                    <RadioButton GroupName="TrayIconMode"
+                                                 IsChecked="{Binding IsSelected}"
+                                                 AutomationProperties.Name="{Binding Title}">
+                                        <StackPanel Margin="4,0,0,0">
+                                            <TextBlock Style="{StaticResource CardTitle}" FontWeight="SemiBold" Text="{Binding Title}" />
+                                            <TextBlock Style="{StaticResource CardHint}" Text="{Binding Description}" />
+                                        </StackPanel>
+                                    </RadioButton>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <Border Style="{StaticResource Lunatic.Card}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock VerticalAlignment="Center" Style="{StaticResource CardTitle}" Text="Avisar cuando la batería esté baja" />
+                            <CheckBox Grid.Column="1"
+                                      Style="{StaticResource Lunatic.ToggleSwitch}"
+                                      IsChecked="{Binding NotifyLowBattery}"
+                                      AutomationProperties.Name="Avisar cuando la batería esté baja" />
+                        </Grid>
+                    </Border>
+                </StackPanel>
             </ScrollViewer>
 
             <!-- General -->
@@ -317,6 +431,27 @@
                         </Style.Triggers>
                     </Style>
                 </StackPanel.Style>
+                <Border Style="{StaticResource Lunatic.Card}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Margin="0,0,16,0">
+                            <TextBlock Style="{StaticResource CardTitle}" Text="Apariencia" />
+                            <TextBlock Style="{StaticResource CardHint}" Text="Cómo se ven el panel y esta ventana. Con alto contraste se usan los colores de Windows" />
+                        </StackPanel>
+                        <ComboBox Grid.Column="1"
+                                  MinWidth="200"
+                                  VerticalAlignment="Center"
+                                  ItemsSource="{Binding Appearances}"
+                                  DisplayMemberPath="Title"
+                                  SelectedValuePath="Appearance"
+                                  SelectedValue="{Binding Appearance}"
+                                  AutomationProperties.Name="Apariencia" />
+                    </Grid>
+                </Border>
+
                 <Border Style="{StaticResource Lunatic.Card}">
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -356,7 +491,8 @@
                                 Style="{StaticResource Lunatic.LinkButton}"
                                 FontSize="14"
                                 Content="{Binding RepositoryText}"
-                                Command="{Binding OpenRepositoryCommand}" />
+                                Command="{Binding OpenRepositoryCommand}"
+                                Visibility="{Binding HasRepository, Converter={StaticResource Lunatic.BoolToVisibility}}" />
                     </StackPanel>
                 </Border>
             </StackPanel>

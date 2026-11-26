@@ -1,7 +1,7 @@
 <!--
-    Shared styles for the flyout and the settings window. Colors come only from DynamicResource keys: the Lunatic.*
-    tones (Lunatic.Dark.xaml / Lunatic.Light.xaml) and the Fluent theme's system brushes, so a theme swap repaints
-    everything without touching a view.
+    Shared styles for the flyout and the settings window. Colors, radii and surfaces come only from DynamicResource
+    keys: the Lunatic.* ones (the tone dictionary AppTheme loads: Fluent, Glass or high contrast) and the Fluent
+    theme's system brushes, so a theme or appearance swap repaints everything without touching a view.
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -16,7 +16,6 @@
         <Setter Property="LitSegments" Value="{Binding LitSegments}" />
         <Setter Property="Glyph" Value="{Binding Glyph}" />
         <Setter Property="GlyphFontFamily" Value="{DynamicResource SymbolThemeFontFamily}" />
-        <Setter Property="UnlitBrush" Value="{DynamicResource Lunatic.Tone.Unlit}" />
         <Setter Property="LitBrush" Value="{DynamicResource Lunatic.Tone.Unlit}" />
         <Setter Property="GlyphBrush" Value="{DynamicResource Lunatic.Glyph}" />
         <Style.Triggers>
@@ -70,9 +69,26 @@
         <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefaultBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeColorDefaultBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="CornerRadius" Value="{DynamicResource Lunatic.Card.CornerRadius}" />
         <Setter Property="Padding" Value="16,12" />
         <Setter Property="Margin" Value="0,0,0,6" />
+    </Style>
+
+    <!-- A panel that groups a window region: invisible in Fluent and high contrast, a glass panel in Lunatic Glass. -->
+    <Style x:Key="Lunatic.Panel" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource Lunatic.Panel.Background}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Lunatic.Panel.Stroke}" />
+        <Setter Property="BorderThickness" Value="{DynamicResource Lunatic.Panel.StrokeThickness}" />
+        <Setter Property="CornerRadius" Value="{DynamicResource Lunatic.Panel.CornerRadius}" />
+        <Setter Property="Margin" Value="{DynamicResource Lunatic.Panel.Margin}" />
+    </Style>
+
+    <!-- A device row in the flyout: a plain row in Fluent and high contrast, a glass card in Lunatic Glass. -->
+    <Style x:Key="Lunatic.FlyoutRow" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource Lunatic.Flyout.Row.Background}" />
+        <Setter Property="CornerRadius" Value="{DynamicResource Lunatic.Card.CornerRadius}" />
+        <Setter Property="Margin" Value="{DynamicResource Lunatic.Flyout.Row.Margin}" />
+        <Setter Property="Padding" Value="{DynamicResource Lunatic.Flyout.Row.Padding}" />
     </Style>
 
     <!-- A glyph-only button (the flyout's settings gear). Set AutomationProperties.Name and ToolTip on each use. -->
@@ -136,6 +152,8 @@
     <!--
         On/off switch. The WPF Fluent theme has the ToggleSwitch colors but no ToggleSwitch control, so this restyles
         a CheckBox with the same system brushes. Set AutomationProperties.Name on each use.
+        Disabled, it fades out, except in high contrast: fading breaks the system colors' contrast, so there it is drawn
+        in the system's disabled text color (GrayText). The knob position still says on or off.
     -->
     <Style x:Key="Lunatic.ToggleSwitch" TargetType="CheckBox">
         <Setter Property="Cursor" Value="Hand" />
@@ -177,9 +195,22 @@
                         <Trigger Property="IsKeyboardFocused" Value="True">
                             <Setter TargetName="Focus" Property="Visibility" Value="Visible" />
                         </Trigger>
-                        <Trigger Property="IsEnabled" Value="False">
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding IsEnabled, RelativeSource={RelativeSource Self}}" Value="False" />
+                                <Condition Binding="{Binding Path=(SystemParameters.HighContrast)}" Value="False" />
+                            </MultiDataTrigger.Conditions>
                             <Setter Property="Opacity" Value="0.4" />
-                        </Trigger>
+                        </MultiDataTrigger>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding IsEnabled, RelativeSource={RelativeSource Self}}" Value="False" />
+                                <Condition Binding="{Binding Path=(SystemParameters.HighContrast)}" Value="True" />
+                            </MultiDataTrigger.Conditions>
+                            <Setter TargetName="Track" Property="Background" Value="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" />
+                            <Setter TargetName="Track" Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" />
+                            <Setter TargetName="Knob" Property="Fill" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" />
+                        </MultiDataTrigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>

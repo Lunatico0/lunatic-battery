@@ -117,7 +117,9 @@ public class DeviceCatalogTests
     {
         var entries = DeviceCatalog.LoadEmbedded();
 
-        Assert.Equal(new[] { "razer-cobra-hyperspeed", "steelseries-arctis-nova-5" }, entries.Select(e => e.Id));
+        Assert.Equal(
+            new[] { "razer-cobra-hyperspeed", "steelseries-arctis-nova-5", "rapoo-gaming-mouse", "redragon-k673" },
+            entries.Select(e => e.Id));
     }
 
     [Fact]
@@ -145,6 +147,52 @@ public class DeviceCatalogTests
         Assert.Equal(new[] { 0x2232, 0x2253 }, nova.ProductIds);
         Assert.Equal(3, nova.RequireOption("interface"));
         Assert.Equal(0xFFC00001L, nova.RequireOption("usage"));
+    }
+
+    [Fact]
+    public void Embedded_rapoo_mouse_uses_its_dongle_id_and_battery_collection()
+    {
+        var rapoo = DeviceCatalog.LoadEmbedded().Single(e => e.Id == "rapoo-gaming-mouse");
+
+        Assert.Equal("rapoo-hid", rapoo.Family);
+        Assert.Equal("Rapoo Gaming Mouse", rapoo.Name);
+        Assert.Equal(DeviceKind.Mouse, rapoo.Kind);
+        Assert.Equal(0x24AE, rapoo.VendorId);
+        Assert.Equal(new[] { 0x1211 }, rapoo.ProductIds);
+        Assert.Equal(1, rapoo.RequireOption("interface"));
+        Assert.Equal(0xFF000002L, rapoo.RequireOption("usage"));
+    }
+
+    [Fact]
+    public void Embedded_catalog_matches_the_rapoo_dongle()
+    {
+        var present = new[] { new HidId(0x24AE, 0x1211) };
+
+        var match = Assert.Single(CatalogMatcher.Match(DeviceCatalog.LoadEmbedded(), present));
+        Assert.Equal("rapoo-gaming-mouse", match.Id);
+    }
+
+    [Fact]
+    public void Embedded_redragon_k673_uses_its_receiver_id_and_battery_collection()
+    {
+        var k673 = DeviceCatalog.LoadEmbedded().Single(e => e.Id == "redragon-k673");
+
+        Assert.Equal("redragon-hid", k673.Family);
+        Assert.Equal("Redragon K673", k673.Name);
+        Assert.Equal(DeviceKind.Keyboard, k673.Kind);
+        Assert.Equal(0x3554, k673.VendorId);
+        Assert.Equal(new[] { 0xFA09 }, k673.ProductIds);
+        Assert.Equal(1, k673.RequireOption("interface"));
+        Assert.Equal(0xFF020002L, k673.RequireOption("usage"));
+    }
+
+    [Fact]
+    public void Embedded_catalog_matches_the_compx_receiver_of_the_k673()
+    {
+        var present = new[] { new HidId(0x3554, 0xFA09) };
+
+        var match = Assert.Single(CatalogMatcher.Match(DeviceCatalog.LoadEmbedded(), present));
+        Assert.Equal("redragon-k673", match.Id);
     }
 
     private static string Without(string field)

@@ -1,3 +1,4 @@
+using BatteryDisplay.App.Discovery;
 using BatteryDisplay.App.Polling;
 using BatteryDisplay.App.Settings;
 using BatteryDisplay.App.Tests.Discovery;
@@ -16,9 +17,9 @@ public class BatteryMonitorTests
     private readonly ManualTimeProvider _clock = new(T0);
     private readonly List<IReadOnlyList<DeviceSnapshot>> _published = [];
 
-    private BatteryMonitor Monitor(IDeviceSource source, BatteryPoller? poller = null)
+    private BatteryMonitor Monitor(IDeviceSource source, BatteryPoller? poller = null, Action<string>? log = null)
     {
-        var monitor = new BatteryMonitor(source, poller ?? Poller, _settings, _clock);
+        var monitor = new BatteryMonitor(source, poller ?? Poller, _settings, _clock, log);
         monitor.DevicesChanged += (_, devices) => _published.Add(devices);
         return monitor;
     }
@@ -123,6 +124,85 @@ public class BatteryMonitorTests
         Assert.Equal(0, second.Reads);
     }
 
+    private static readonly Guid Mouse = new("c5cc23df-e5b5-11f1-beb0-f44efc8ff591");
+    private static readonly string BtMouse = $"bt-{Mouse}";
+
+    private static MergedProvider Merged(FakeProvider winner, params FakeProvider[] losers) => new(winner, losers);
+
+    [Fact]
+    public async Task MergedDevice_LearnsTheAlias_AndTheLosersSettingsFollowTheWinner()
+    {
+        _settings.Save(AppSettings.Default.WithDevice(BtMouse, DeviceSettings.Default with { DisplayName = "Mi mouse" }));
+        var monitor = Monitor(new FakeSource(Merged(
+            FakeProvider.Device("razer", Mouse, DeviceChannel.VendorHid, Ok),
+            FakeProvider.Device(BtMouse, Mouse, DeviceChannel.Bluetooth))));
+
+        await monitor.RefreshAsync(CancellationToken.None);
+
+        var device = Assert.Single(monitor.Devices);
+        Assert.Equal(("razer", "Mi mouse"), (device.Id, device.DisplayName));
+        Assert.Equal("razer", _settings.Current.CanonicalIdOf(BtMouse));
+    }
+
+    [Fact]
+    public async Task KnownAlias_IsSavedOnlyOnce()
+    {
+        var saves = 0;
+        _settings.Changed += (_, _) => saves++;
+        var monitor = Monitor(new FakeSource(Merged(
+            FakeProvider.Device("razer", Mouse, DeviceChannel.VendorHid, Ok),
+            FakeProvider.Device(BtMouse, Mouse, DeviceChannel.Bluetooth))));
+
+        await monitor.RefreshAsync(CancellationToken.None);
+        await monitor.RefreshAsync(CancellationToken.None);
+
+        Assert.Equal(1, saves);
+    }
+
+    [Fact]
+    public async Task WinnerGone_TheLoserAlone_KeepsTheDeviceIdAndItsSettings()
+    {
+        var bluetooth = FakeProvider.Device(BtMouse, Mouse, DeviceChannel.Bluetooth, new BatteryStatus(40, ChargeState.Discharging));
+        var source = new FakeSource(Merged(FakeProvider.Device("razer", Mouse, DeviceChannel.VendorHid, Ok), bluetooth));
+        var monitor = Monitor(source);
+        await monitor.RefreshAsync(CancellationToken.None);
+        _settings.Save(_settings.Current.WithDevice("razer", DeviceSettings.Default with { DisplayName = "Cobra" }));
+
+        source.Current = [bluetooth];
+        await monitor.RefreshAsync(CancellationToken.None);
+
+        var device = Assert.Single(monitor.Devices);
+        Assert.Equal(("razer", "Cobra", 40), (device.Id, device.DisplayName, device.Status!.Percent));
+    }
+
+    [Fact]
+    public async Task AfterARestart_TheLoserAlone_ShowsUnderTheWinnersId()
+    {
+        _settings.Save(AppSettings.Default
+            .WithAlias(BtMouse, "razer")
+            .WithDevice("razer", DeviceSettings.Default with { DisplayName = "Cobra" }));
+        var monitor = Monitor(new FakeSource(FakeProvider.Device(BtMouse, Mouse, DeviceChannel.Bluetooth, Ok)));
+
+        await monitor.RefreshAsync(CancellationToken.None);
+
+        var device = Assert.Single(monitor.Devices);
+        Assert.Equal(("razer", "Cobra"), (device.Id, device.DisplayName));
+    }
+
+    [Fact]
+    public async Task Alias_IsNotApplied_WhileTheCanonicalDeviceShowsOnItsOwn()
+    {
+        _settings.Save(AppSettings.Default.WithAlias(BtMouse, "razer"));
+        var monitor = Monitor(new FakeSource(
+            FakeProvider.Returning("razer", null),
+            FakeProvider.Device(BtMouse, Mouse, DeviceChannel.Bluetooth, Ok)));
+
+        await monitor.RefreshAsync(CancellationToken.None);
+
+        Assert.Equal(["razer", BtMouse], Ids(monitor));
+        Assert.Equal<BatteryStatus?>([null, Ok], monitor.Devices.Select(d => d.Status));
+    }
+
     [Fact]
     public async Task StillPresentDevice_ReadsTheLatestProviderInstance()
     {
@@ -152,6 +232,54 @@ public class BatteryMonitorTests
         source.Current = [FakeProvider.Returning("a", Ok)];
         await monitor.RefreshAsync(CancellationToken.None);
         Assert.Equal(2, _published.Count);
+    }
+
+    [Fact]
+    public async Task FirstCycle_PublishesEvenWhenNothingIsConnected_SoTheTrayStopsSearching()
+    {
+        var monitor = Monitor(new FakeSource());
+
+        await monitor.RefreshAsync(CancellationToken.None);
+        await monitor.RefreshAsync(CancellationToken.None);
+
+        Assert.Empty(Assert.Single(_published));
+    }
+
+    [Fact]
+    public async Task FirstCycle_LogsTheDiscovery_EachReading_AndThePublish()
+    {
+        var logs = new List<string>();
+        var monitor = Monitor(new FakeSource(FakeProvider.Returning("ok", Ok), FakeProvider.Throwing("boom")), log: logs.Add);
+
+        await monitor.RefreshAsync(CancellationToken.None);
+
+        Assert.Contains(logs, l => l.StartsWith("first cycle: discovered 2 device(s) in ", StringComparison.Ordinal));
+        Assert.Contains(logs, l => l.StartsWith("first cycle: ok ", StringComparison.Ordinal) && l.EndsWith(": 60% Discharging", StringComparison.Ordinal));
+        Assert.Contains(logs, l => l.StartsWith("first cycle: boom ", StringComparison.Ordinal) && l.EndsWith(": no reading", StringComparison.Ordinal));
+        Assert.Contains(logs, l => l.StartsWith("first cycle: published 2 device(s) after ", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task LaterCycles_LogNothing()
+    {
+        var logs = new List<string>();
+        var monitor = Monitor(new FakeSource(FakeProvider.Returning("ok", Ok)), log: logs.Add);
+        await monitor.RefreshAsync(CancellationToken.None);
+        logs.Clear();
+
+        await monitor.RefreshAsync(CancellationToken.None);
+
+        Assert.Empty(logs);
+    }
+
+    [Fact]
+    public void SettingsChangeBeforeTheFirstCycle_PublishesNothing()
+    {
+        Monitor(new FakeSource(FakeProvider.Returning("a", Ok)));
+
+        _settings.Save(_settings.Current with { TrayIconMode = TrayIconMode.Lowest });
+
+        Assert.Empty(_published);
     }
 
     [Fact]
@@ -190,7 +318,7 @@ public class BatteryMonitorTests
     }
 
     [Fact]
-    public async Task OverlappingRefresh_IsSkipped()
+    public async Task OverlappingRefresh_DoesNotRunAlongside_ButRunsOnceMoreAfterwards()
     {
         var gate = new TaskCompletionSource<BatteryStatus?>();
         var provider = new FakeProvider("slow", _ => gate.Task);
@@ -202,8 +330,36 @@ public class BatteryMonitorTests
         gate.SetResult(Ok);
         await first;
 
-        Assert.Equal(1, provider.Reads);
-        Assert.Equal(1, source.Calls);
+        Assert.Equal(2, provider.Reads);
+        Assert.Equal(2, source.Calls);
+    }
+
+    [Fact]
+    public async Task HotPlugDuringADiscovery_IsPickedUpRightAfter_AndBurstsCoalesceIntoOneMoreDiscovery()
+    {
+        var gate = new ManualResetEventSlim();
+        var source = new FakeSource(FakeProvider.Returning("a", Ok));
+        source.OnDiscover = () =>
+        {
+            if (source.Calls == 1)
+                gate.Wait(TimeSpan.FromSeconds(5));
+        };
+        var monitor = Monitor(source);
+
+        var first = monitor.RefreshAsync(CancellationToken.None);
+        source.Current = [FakeProvider.Returning("a", Ok), FakeProvider.Returning("b", Ok)];
+        Task[] overlapping =
+        [
+            monitor.RefreshAsync(CancellationToken.None),
+            monitor.RefreshAsync(CancellationToken.None),
+            monitor.RefreshAsync(CancellationToken.None),
+        ];
+        Assert.All(overlapping, t => Assert.True(t.IsCompleted));
+        gate.Set();
+        await first.WaitAsync(TimeSpan.FromSeconds(5));
+
+        Assert.Equal(2, source.Calls);
+        Assert.Equal(["a", "b"], Ids(monitor));
     }
 
     [Fact]

@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using BatteryDisplay.Core;
 
 namespace BatteryDisplay.Devices.Bluetooth;
@@ -11,9 +10,10 @@ namespace BatteryDisplay.Devices.Bluetooth;
 /// </summary>
 public sealed class BluetoothDeviceSource(IBluetoothDeviceApi api, Action<string>? log = null) : IDeviceSource
 {
-    private readonly Action<string> _log = log ?? (message => Debug.WriteLine(message, "BatteryDisplay"));
+    // The app wires its log in; without one, failures are dropped (this library never writes files).
+    private readonly Action<string> _log = log ?? (_ => { });
 
-    public BluetoothDeviceSource() : this(new CfgMgrBluetoothApi()) { }
+    public BluetoothDeviceSource(Action<string>? log = null) : this(new CfgMgrBluetoothApi(), log) { }
 
     public IReadOnlyList<IBatteryProvider> Discover()
     {
@@ -50,6 +50,8 @@ public sealed class BluetoothBatteryProvider(IBluetoothDeviceApi api, Guid conta
     public string Name => name;
     public DeviceKind Kind => kind;
     public string Source => "Bluetooth";
+    public DeviceChannel Channel => DeviceChannel.Bluetooth;
+    public Guid? ContainerId => containerId;
 
     public Task<BatteryStatus?> ReadAsync(CancellationToken ct)
     {

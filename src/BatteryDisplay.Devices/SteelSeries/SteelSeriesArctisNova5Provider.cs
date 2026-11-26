@@ -12,9 +12,10 @@ public sealed class SteelSeriesArctisNova5Provider : IBatteryProvider
 {
     private readonly CatalogEntry _entry;
 
-    public SteelSeriesArctisNova5Provider(CatalogEntry entry)
+    public SteelSeriesArctisNova5Provider(CatalogEntry entry, Guid? containerId = null)
     {
         _entry = entry;
+        ContainerId = containerId;
         InterfaceNumber = checked((int)entry.RequireOption("interface"));
         Usage = checked((uint)entry.RequireOption("usage"));
     }
@@ -23,6 +24,8 @@ public sealed class SteelSeriesArctisNova5Provider : IBatteryProvider
     public string Name => _entry.Name;
     public DeviceKind Kind => _entry.Kind;
     public string Source => "Dongle SteelSeries";
+    public DeviceChannel Channel => DeviceChannel.VendorHid;
+    public Guid? ContainerId { get; }
     public int VendorId => _entry.VendorId;
     public IReadOnlyList<int> ProductIds => _entry.ProductIds;
     public int InterfaceNumber { get; }

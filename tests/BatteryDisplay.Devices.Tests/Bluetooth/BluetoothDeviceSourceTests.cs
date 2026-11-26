@@ -33,6 +33,17 @@ public class BluetoothDeviceSourceTests
     }
 
     [Fact]
+    public void Provider_names_its_container_as_the_physical_device_reached_over_bluetooth()
+    {
+        var container = _api.AddLowEnergy("RK N80", battery: 39, connected: true);
+
+        var provider = Assert.Single(Discover());
+
+        Assert.Equal(container, provider.ContainerId);
+        Assert.Equal(DeviceChannel.Bluetooth, provider.Channel);
+    }
+
+    [Fact]
     public void Id_is_stable_across_discoveries()
     {
         _api.AddLowEnergy("RK N80", battery: 39, connected: true);

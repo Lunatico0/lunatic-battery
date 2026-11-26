@@ -1,11 +1,16 @@
 using System.Diagnostics;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Forms.Integration;
+using BatteryDisplay.App.Logging;
 using BatteryDisplay.App.Tray;
+using BatteryDisplay.App.Ui.Diagnostics;
 using BatteryDisplay.App.Ui.Flyout;
 using BatteryDisplay.App.Ui.Settings;
 using BatteryDisplay.App.Ui.Themes;
+using BatteryDisplay.App.Updates;
+using BatteryDisplay.Devices.Diagnostics;
 
 namespace BatteryDisplay.App.Ui;
 
@@ -23,13 +28,14 @@ internal sealed class UiHost : IDisposable
     private readonly string _exePath = Environment.ProcessPath ?? System.Windows.Forms.Application.ExecutablePath;
     private FlyoutWindow? _flyout;
     private SettingsWindow? _settingsWindow;
+    private DiagnosticsWindow? _diagnosticsWindow;
 
     public UiHost(TrayApplicationContext tray)
     {
         _tray = tray;
         var app = System.Windows.Application.Current ?? new System.Windows.Application();
         app.ShutdownMode = ShutdownMode.OnExplicitShutdown;
-        AppTheme.Install(app);
+        AppTheme.Install(app, tray.Settings);
 
         _flyoutViewModel = new FlyoutViewModel(tray.Devices, tray.Settings, TimeProvider.System);
         _flyoutViewModel.SettingsRequested += OnFlyoutSettingsRequested;
@@ -74,9 +80,10 @@ internal sealed class UiHost : IDisposable
     {
         if (_settingsWindow is null)
         {
-            var viewModel = new SettingsViewModel(_tray.Devices, _tray.Settings, new StartupSetting(_exePath), Version(), OpenUrl);
+            var viewModel = new SettingsViewModel(_tray.Devices, _tray.Settings, new StartupSetting(_exePath), Version(), AppRepository.Url, OpenUrl);
             var window = new SettingsWindow(viewModel);
             ElementHost.EnableModelessKeyboardInterop(window);
+            viewModel.DiagnosticsRequested += (_, _) => ShowDiagnostics(window);
             window.Closed += (_, _) =>
             {
                 viewModel.Dispose();
@@ -90,7 +97,32 @@ internal sealed class UiHost : IDisposable
         _settingsWindow.Activate();
     }
 
-    private static string Version()
+    /// <summary>
+    /// One diagnostic window at a time, owned by the settings window so it closes with it. Each opening builds a
+    /// fresh report, so plugging the device in and opening it again shows the change.
+    /// </summary>
+    private void ShowDiagnostics(Window owner)
+    {
+        if (_diagnosticsWindow is null)
+        {
+            var saver = new ReportFileDialog();
+            var diagnostics = new DeviceDiagnostics();
+            var viewModel = new DiagnosticsViewModel(
+                () => DiagnosticReport.Build(Version(), RuntimeInformation.OSDescription, diagnostics.Collect()),
+                new WpfClipboard(), saver);
+            var window = new DiagnosticsWindow(viewModel) { Owner = owner };
+            saver.Owner = window;
+            ElementHost.EnableModelessKeyboardInterop(window);
+            window.Closed += (_, _) => _diagnosticsWindow = null;
+            _diagnosticsWindow = window;
+        }
+        _diagnosticsWindow.Show();
+        if (_diagnosticsWindow.WindowState == WindowState.Minimized)
+            _diagnosticsWindow.WindowState = WindowState.Normal;
+        _diagnosticsWindow.Activate();
+    }
+
+    internal static string Version()
     {
         var assembly = typeof(UiHost).Assembly;
         var version = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
@@ -109,7 +141,7 @@ internal sealed class UiHost : IDisposable
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Could not open {url}: {ex.Message}", "BatteryDisplay");
+            AppLog.Write("ui", $"Could not open {url}", ex);
         }
     }
 
@@ -118,6 +150,7 @@ internal sealed class UiHost : IDisposable
         _tray.TrayIconLeftClicked -= OnTrayIconLeftClicked;
         _tray.SettingsRequested -= OnSettingsRequested;
         _flyoutViewModel.SettingsRequested -= OnFlyoutSettingsRequested;
+        _diagnosticsWindow?.Close();
         _settingsWindow?.Close();
         _flyout?.CloseForGood();
         _flyoutViewModel.Dispose();

@@ -1,4 +1,4 @@
-using System.Diagnostics;
+using BatteryDisplay.App.Logging;
 using BatteryDisplay.App.Tray;
 
 namespace BatteryDisplay.App.Ui.Settings;
@@ -16,7 +16,7 @@ internal sealed class StartupSetting(string exePath) : IStartupSetting
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Could not read startup setting: {ex.Message}", "BatteryDisplay");
+                AppLog.Write("startup", "Could not read startup setting", ex);
                 return false;
             }
         }

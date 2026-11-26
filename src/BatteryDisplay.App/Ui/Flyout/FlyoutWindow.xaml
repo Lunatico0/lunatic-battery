@@ -12,98 +12,105 @@
         Background="Transparent"
         ShowInTaskbar="False"
         Topmost="True">
-    <Border CornerRadius="8"
+    <Border CornerRadius="{DynamicResource Lunatic.Flyout.CornerRadius}"
             BorderThickness="1"
             BorderBrush="{DynamicResource SurfaceStrokeColorFlyoutBrush}"
             Background="{DynamicResource SolidBackgroundFillColorQuarternaryBrush}">
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
-
-            <!-- Header -->
-            <Grid Grid.Row="0" Margin="16,12,8,8">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <StackPanel VerticalAlignment="Center">
-                    <TextBlock Style="{DynamicResource Lunatic.PrimaryText}"
-                               FontWeight="SemiBold"
-                               Text="{x:Static flyout:FlyoutViewModel.Title}" />
-                    <TextBlock Style="{DynamicResource Lunatic.SecondaryText}" Text="{Binding Subtitle}" />
-                </StackPanel>
-                <Button Grid.Column="1"
-                        Style="{DynamicResource Lunatic.IconButton}"
-                        Content="&#xE713;"
-                        Command="{Binding OpenSettingsCommand}"
-                        ToolTip="Configuración"
-                        AutomationProperties.Name="Configuración" />
-            </Grid>
-
-            <!-- Devices -->
-            <Grid Grid.Row="1" Margin="0,0,0,8">
-                <TextBlock Margin="16,8,16,12"
-                           Style="{DynamicResource Lunatic.SecondaryText}"
-                           FontSize="14"
-                           TextTrimming="None"
-                           TextWrapping="Wrap"
-                           Text="{x:Static flyout:FlyoutViewModel.EmptyText}"
-                           Visibility="{Binding IsEmpty, Converter={StaticResource Lunatic.BoolToVisibility}}" />
-                <ScrollViewer MaxHeight="440" VerticalScrollBarVisibility="Auto" Focusable="False">
-                    <ItemsControl ItemsSource="{Binding Rows}" Focusable="False">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Grid Margin="16,6">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
-                                    <controls:BatteryRing Width="32" Height="32" Style="{DynamicResource Lunatic.DeviceRing}" />
-                                    <StackPanel Grid.Column="1" Margin="12,0" VerticalAlignment="Center">
-                                        <TextBlock Style="{DynamicResource Lunatic.PrimaryText}" Text="{Binding Name}" ToolTip="{Binding Name}" />
-                                        <TextBlock Style="{DynamicResource Lunatic.SecondaryText}" Text="{Binding Source}" />
-                                    </StackPanel>
-                                    <StackPanel Grid.Column="2" VerticalAlignment="Center">
-                                        <TextBlock HorizontalAlignment="Right"
-                                                   FontSize="16"
-                                                   FontWeight="SemiBold"
-                                                   Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-                                                   Text="{Binding ValueText}" />
-                                        <TextBlock HorizontalAlignment="Right" Style="{DynamicResource Lunatic.DeviceStateText}" />
-                                    </StackPanel>
-                                </Grid>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </ScrollViewer>
-            </Grid>
-
-            <!-- Footer -->
-            <Border Grid.Row="2"
-                    CornerRadius="0,0,7,7"
-                    BorderThickness="0,1,0,0"
-                    BorderBrush="{DynamicResource DividerStrokeColorDefaultBrush}"
-                    Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
-                    Padding="16,8,12,8">
+        <!-- Lunatic Glass draws its backdrop and glass panel here; in Fluent and high contrast both are transparent. -->
+        <Border CornerRadius="{DynamicResource Lunatic.Flyout.InnerCornerRadius}" Background="{DynamicResource Lunatic.Backdrop}">
+            <Border CornerRadius="{DynamicResource Lunatic.Flyout.InnerCornerRadius}" Background="{DynamicResource Lunatic.Panel.Background}">
                 <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <TextBlock VerticalAlignment="Center"
-                               Style="{DynamicResource Lunatic.SecondaryText}"
-                               Text="{Binding UpdatedText}"
-                               Visibility="{Binding HasUpdatedText, Converter={StaticResource Lunatic.BoolToVisibility}}" />
-                    <Button Grid.Column="1"
-                            Style="{DynamicResource Lunatic.LinkButton}"
-                            Content="Abrir configuración"
-                            Command="{Binding OpenSettingsCommand}" />
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <!-- Header -->
+                    <Grid Grid.Row="0" Margin="16,12,8,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Style="{DynamicResource Lunatic.PrimaryText}"
+                                       FontWeight="SemiBold"
+                                       Text="{x:Static flyout:FlyoutViewModel.Title}" />
+                            <TextBlock Style="{DynamicResource Lunatic.SecondaryText}" Text="{Binding Subtitle}" />
+                        </StackPanel>
+                        <Button Grid.Column="1"
+                                Style="{DynamicResource Lunatic.IconButton}"
+                                Content="&#xE713;"
+                                Command="{Binding OpenSettingsCommand}"
+                                ToolTip="Configuración"
+                                AutomationProperties.Name="Configuración" />
+                    </Grid>
+
+                    <!-- Devices -->
+                    <Grid Grid.Row="1" Margin="0,0,0,8">
+                        <TextBlock Margin="16,8,16,12"
+                                   Style="{DynamicResource Lunatic.SecondaryText}"
+                                   FontSize="14"
+                                   TextTrimming="None"
+                                   TextWrapping="Wrap"
+                                   Text="{x:Static flyout:FlyoutViewModel.EmptyText}"
+                                   Visibility="{Binding IsEmpty, Converter={StaticResource Lunatic.BoolToVisibility}}" />
+                        <ScrollViewer MaxHeight="440" VerticalScrollBarVisibility="Auto" Focusable="False">
+                            <ItemsControl ItemsSource="{Binding Rows}" Focusable="False">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Style="{DynamicResource Lunatic.FlyoutRow}">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <controls:BatteryRing Width="32" Height="32" Style="{DynamicResource Lunatic.DeviceRing}" />
+                                                <StackPanel Grid.Column="1" Margin="12,0" VerticalAlignment="Center">
+                                                    <TextBlock Style="{DynamicResource Lunatic.PrimaryText}" Text="{Binding Name}" ToolTip="{Binding Name}" />
+                                                    <TextBlock Style="{DynamicResource Lunatic.SecondaryText}" Text="{Binding Source}" />
+                                                </StackPanel>
+                                                <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                                    <TextBlock HorizontalAlignment="Right"
+                                                               FontSize="16"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                                               Text="{Binding ValueText}" />
+                                                    <TextBlock HorizontalAlignment="Right" Style="{DynamicResource Lunatic.DeviceStateText}" />
+                                                </StackPanel>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Grid>
+
+                    <!-- Footer -->
+                    <Border Grid.Row="2"
+                            CornerRadius="{DynamicResource Lunatic.Flyout.FooterCornerRadius}"
+                            BorderThickness="0,1,0,0"
+                            BorderBrush="{DynamicResource DividerStrokeColorDefaultBrush}"
+                            Background="{DynamicResource Lunatic.Flyout.Footer}"
+                            Padding="16,8,12,8">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock VerticalAlignment="Center"
+                                       Style="{DynamicResource Lunatic.SecondaryText}"
+                                       Text="{Binding UpdatedText}"
+                                       Visibility="{Binding HasUpdatedText, Converter={StaticResource Lunatic.BoolToVisibility}}" />
+                            <Button Grid.Column="1"
+                                    Style="{DynamicResource Lunatic.LinkButton}"
+                                    Content="Abrir configuración"
+                                    Command="{Binding OpenSettingsCommand}" />
+                        </Grid>
+                    </Border>
                 </Grid>
             </Border>
-        </Grid>
+        </Border>
     </Border>
 </Window>

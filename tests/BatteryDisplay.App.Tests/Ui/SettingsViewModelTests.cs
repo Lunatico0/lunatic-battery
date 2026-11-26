@@ -19,7 +19,10 @@ public class SettingsViewModelTests
 
     public SettingsViewModelTests() => _settings.Changed += (_, _) => _saves++;
 
-    private SettingsViewModel Create() => new(_devices, _settings, _startup, "1.2.3", _opened.Add);
+    private const string Repository = "https://github.com/owner/repo";
+
+    private SettingsViewModel Create(string? repository = Repository) =>
+        new(_devices, _settings, _startup, "1.2.3", repository, _opened.Add);
 
     private DeviceSettings Saved(string id) => _settings.Current.For(id);
 
@@ -376,6 +379,30 @@ public class SettingsViewModelTests
     }
 
     [Fact]
+    public void NotifyLowBattery_ShowsAndSavesTheGlobalSwitch()
+    {
+        using var vm = Create();
+        Assert.True(vm.NotifyLowBattery);
+
+        vm.NotifyLowBattery = false;
+
+        Assert.False(_settings.Current.NotifyLowBattery);
+        Assert.False(vm.NotifyLowBattery);
+    }
+
+    [Fact]
+    public void NotifyLowBattery_ChangedElsewhere_IsRaised()
+    {
+        using var vm = Create();
+        var changes = new PropertyChanges(vm);
+
+        _settings.Save(_settings.Current with { NotifyLowBattery = false });
+
+        Assert.False(vm.NotifyLowBattery);
+        Assert.Contains(nameof(SettingsViewModel.NotifyLowBattery), changes.Names);
+    }
+
+    [Fact]
     public void StartWithWindows_ReadsAndWritesTheStartupSetting()
     {
         _startup.IsEnabled = true;
@@ -415,6 +442,53 @@ public class SettingsViewModelTests
     }
 
     [Fact]
+    public void Appearance_OffersFluentAndGlass_StartingOnTheSavedOne()
+    {
+        using var vm = Create();
+
+        Assert.Equal([UiAppearance.Fluent, UiAppearance.Glass], vm.Appearances.Select(a => a.Appearance));
+        Assert.Equal(["Fluent, como Windows", "Lunatic Glass"], vm.Appearances.Select(a => a.Title));
+        Assert.Equal(UiAppearance.Fluent, vm.Appearance);
+    }
+
+    [Fact]
+    public void ChoosingAnAppearance_SavesIt_KeepingEverythingElse()
+    {
+        SetMode(TrayIconMode.Lowest);
+        using var vm = Create();
+        var before = _saves;
+
+        vm.Appearance = UiAppearance.Glass;
+
+        Assert.Equal(UiAppearance.Glass, _settings.Current.Appearance);
+        Assert.Equal(TrayIconMode.Lowest, _settings.Current.TrayIconMode);
+        Assert.Equal(before + 1, _saves);
+    }
+
+    [Fact]
+    public void ChoosingTheSameAppearance_DoesNotSave()
+    {
+        using var vm = Create();
+        var before = _saves;
+
+        vm.Appearance = UiAppearance.Fluent;
+
+        Assert.Equal(before, _saves);
+    }
+
+    [Fact]
+    public void AppearanceChangedElsewhere_RefreshesTheChoice()
+    {
+        using var vm = Create();
+        var changes = new PropertyChanges(vm);
+
+        _settings.Save(_settings.Current with { Appearance = UiAppearance.Glass });
+
+        Assert.Equal(UiAppearance.Glass, vm.Appearance);
+        Assert.Contains(nameof(SettingsViewModel.Appearance), changes.Names);
+    }
+
+    [Fact]
     public void Sections_AreTheFourOfThisMilestone_StartingOnDevices()
     {
         using var vm = Create();
@@ -443,7 +517,32 @@ public class SettingsViewModelTests
 
         Assert.Equal("Versión 1.2.3", vm.VersionText);
         Assert.Equal("Repositorio en GitHub", vm.RepositoryText);
-        Assert.Equal([SettingsViewModel.RepositoryUrl], _opened);
+        Assert.True(vm.HasRepository);
+        Assert.Equal([Repository], _opened);
+    }
+
+    [Fact]
+    public void About_WithoutARepository_HidesTheLink_AndOpensNothing()
+    {
+        using var vm = Create(repository: null);
+
+        vm.OpenRepositoryCommand.Execute(null);
+
+        Assert.False(vm.HasRepository);
+        Assert.Empty(_opened);
+    }
+
+    [Fact]
+    public void ShowDiagnostics_AsksTheOwnerToOpenTheDiagnostic()
+    {
+        using var vm = Create();
+        var requests = 0;
+        vm.DiagnosticsRequested += (_, _) => requests++;
+
+        vm.ShowDiagnosticsCommand.Execute(null);
+
+        Assert.Equal(1, requests);
+        Assert.Empty(_opened);
     }
 
     [Fact]

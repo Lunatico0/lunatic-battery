@@ -12,6 +12,8 @@ internal sealed class FakeProvider(
     public string Name => name ?? id;
     public DeviceKind Kind => kind;
     public string Source => source;
+    public DeviceChannel Channel { get; init; } = DeviceChannel.Other;
+    public Guid? ContainerId { get; init; }
 
     public Task<BatteryStatus?> ReadAsync(CancellationToken ct)
     {
@@ -21,6 +23,10 @@ internal sealed class FakeProvider(
 
     public static FakeProvider Returning(string id, BatteryStatus? status, DeviceKind kind = DeviceKind.Mouse) =>
         new(id, _ => Task.FromResult(status), kind);
+
+    /// <summary>A provider that knows which physical device it reaches, and how.</summary>
+    public static FakeProvider Device(string id, Guid? container, DeviceChannel channel, BatteryStatus? status = null) =>
+        new(id, _ => Task.FromResult(status)) { ContainerId = container, Channel = channel };
 
     public static FakeProvider Throwing(string id) => new(id, _ => throw new InvalidOperationException("device exploded"));
 

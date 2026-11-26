@@ -1,6 +1,6 @@
-using System.Diagnostics;
 using System.Globalization;
 using System.Windows.Input;
+using BatteryDisplay.App.Logging;
 using BatteryDisplay.App.Polling;
 using BatteryDisplay.App.Settings;
 using BatteryDisplay.App.Ui.Devices;
@@ -20,6 +20,8 @@ public interface IStartupSetting
 public enum SettingsSection { Devices, Tray, General, About }
 
 public sealed record SettingsSectionItem(SettingsSection Section, string Title, string Glyph);
+
+public sealed record AppearanceOption(UiAppearance Appearance, string Title);
 
 /// <summary>
 /// One tray mode card. Checking it asks the owner to switch to its mode; unchecking is ignored, because a card is
@@ -74,9 +76,6 @@ public sealed class SettingsViewModel : ObservableObject, IDisposable
     public const string AppName = "Lunatic Battery";
     public const string LicenseText = "Software libre bajo licencia MIT.";
 
-    // TODO: the repository URL is not decided yet; replace it here, it is the only place the app links to it.
-    public const string RepositoryUrl = "https://github.com/";
-
     private const string PinnedEnabledHint = "Si lo apagás, entra en el ícono combinado";
     private const string PinnedDisabledHint = "Disponible en el modo \"Combinado, con fijados\" de Bandeja y avisos";
 
@@ -89,13 +88,19 @@ public sealed class SettingsViewModel : ObservableObject, IDisposable
     private bool _startWithWindows;
     private bool _disposed;
 
-    public SettingsViewModel(IDeviceSnapshots devices, ISettingsStore settings, IStartupSetting startup, string version, Action<string> openUrl)
+    public SettingsViewModel(IDeviceSnapshots devices, ISettingsStore settings, IStartupSetting startup, string version, string? repositoryUrl, Action<string> openUrl)
     {
         _devices = devices;
         _settings = settings;
         _startup = startup;
         VersionText = $"Versión {version}";
-        OpenRepositoryCommand = new RelayCommand(() => openUrl(RepositoryUrl));
+        HasRepository = repositoryUrl is not null;
+        OpenRepositoryCommand = new RelayCommand(() =>
+        {
+            if (repositoryUrl is not null)
+                openUrl(repositoryUrl);
+        });
+        ShowDiagnosticsCommand = new RelayCommand(() => DiagnosticsRequested?.Invoke(this, EventArgs.Empty));
         Sections =
         [
             new(SettingsSection.Devices, "Dispositivos", "\uE772"),
@@ -246,6 +251,23 @@ public sealed class SettingsViewModel : ObservableObject, IDisposable
         }
     }
 
+    public IReadOnlyList<AppearanceOption> Appearances { get; } =
+    [
+        new(UiAppearance.Fluent, "Fluent, como Windows"),
+        new(UiAppearance.Glass, "Lunatic Glass"),
+    ];
+
+    /// <summary>How the flyout and this window look. Saved as soon as it changes; the theme follows the save live.</summary>
+    public UiAppearance Appearance
+    {
+        get => _settings.Current.Appearance;
+        set
+        {
+            if (value != _settings.Current.Appearance)
+                _settings.Save(_settings.Current with { Appearance = value });
+        }
+    }
+
     public IReadOnlyList<TrayModeOption> TrayModes { get; }
 
     public TrayIconMode TrayIconMode
@@ -255,6 +277,17 @@ public sealed class SettingsViewModel : ObservableObject, IDisposable
         {
             if (value != _settings.Current.TrayIconMode)
                 _settings.Save(_settings.Current with { TrayIconMode = value });
+        }
+    }
+
+    /// <summary>"Avisar cuando la batería esté baja", for every device. Saved as soon as it changes.</summary>
+    public bool NotifyLowBattery
+    {
+        get => _settings.Current.NotifyLowBattery;
+        set
+        {
+            if (value != _settings.Current.NotifyLowBattery)
+                _settings.Save(_settings.Current with { NotifyLowBattery = value });
         }
     }
 
@@ -271,7 +304,7 @@ public sealed class SettingsViewModel : ObservableObject, IDisposable
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Could not change startup setting: {ex.Message}", "BatteryDisplay");
+                AppLog.Write("startup", "Could not change startup setting", ex);
             }
             _startWithWindows = _startup.IsEnabled;
             OnPropertyChanged();
@@ -282,7 +315,15 @@ public sealed class SettingsViewModel : ObservableObject, IDisposable
 
     public string RepositoryText => "Repositorio en GitHub";
 
+    /// <summary>False while RepositoryUrl in Directory.Build.props is empty (Updates/AppRepository); the link hides.</summary>
+    public bool HasRepository { get; }
+
     public ICommand OpenRepositoryCommand { get; }
+
+    /// <summary>"Mi dispositivo no aparece": the owner opens the diagnostic window.</summary>
+    public ICommand ShowDiagnosticsCommand { get; }
+
+    public event EventHandler? DiagnosticsRequested;
 
     private DeviceSettings SelectedOptions => _selectedId is { } id ? _settings.Current.For(id) : DeviceSettings.Default;
 
@@ -309,6 +350,8 @@ public sealed class SettingsViewModel : ObservableObject, IDisposable
         foreach (var mode in TrayModes)
             mode.Refresh(settings.TrayIconMode);
         OnPropertyChanged(nameof(TrayIconMode));
+        OnPropertyChanged(nameof(NotifyLowBattery));
+        OnPropertyChanged(nameof(Appearance));
         OnPropertyChanged(nameof(CanPin));
         OnPropertyChanged(nameof(PinnedHint));
         RaiseOptions();

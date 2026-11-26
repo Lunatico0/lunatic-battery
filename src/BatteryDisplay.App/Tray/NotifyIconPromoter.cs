@@ -1,4 +1,4 @@
-using System.Diagnostics;
+using BatteryDisplay.App.Logging;
 using Microsoft.Win32;
 
 namespace BatteryDisplay.App.Tray;
@@ -32,7 +32,7 @@ internal static class NotifyIconPromoter
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Could not promote tray icons: {ex.Message}", "BatteryDisplay");
+            AppLog.Write("tray", "Could not promote tray icons", ex);
         }
     }
 }

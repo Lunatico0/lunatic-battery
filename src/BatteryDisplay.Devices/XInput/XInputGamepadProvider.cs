@@ -31,6 +31,9 @@ public sealed class XInputGamepadProvider : IBatteryProvider
     public DeviceKind Kind => DeviceKind.Gamepad;
     public string Source => "XInput";
 
+    // No ContainerId: XInput gives a slot number and no device path, so it cannot name the device in the slot.
+    public DeviceChannel Channel => DeviceChannel.XInput;
+
     public Task<BatteryStatus?> ReadAsync(CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();

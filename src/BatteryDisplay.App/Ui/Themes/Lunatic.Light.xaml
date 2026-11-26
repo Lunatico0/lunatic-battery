@@ -1,5 +1,6 @@
 <!--
-    Lunatic tones for the light system theme. Same keys as Lunatic.Dark.xaml; AppTheme swaps one for the other.
+    Lunatic tones for the light system theme. Same keys as Lunatic.Dark.xaml; AppTheme swaps one for the other
+    (Lunatic.HighContrast.xaml replaces both, and the Glass pair, while Windows high contrast is on).
     The ring tones are the tray icon's light taskbar ones (IconPalette.Light in Tray/IconPalette.cs): at least 4.3:1
     against #EEEEEE to #F3F3F3, so the ring clears 3:1 on every light Fluent surface. The state text keeps 4.5:1.
 -->
@@ -10,7 +11,7 @@
     <SolidColorBrush x:Key="Lunatic.Tone.Medium" Color="#B45309" />
     <SolidColorBrush x:Key="Lunatic.Tone.Low" Color="#B91C1C" />
     <SolidColorBrush x:Key="Lunatic.Tone.Charging" Color="#0E7490" />
-    <!-- Segments past the level. -->
+    <!-- Ring tone when there is no reading. The depleted part of the ring is not drawn. -->
     <SolidColorBrush x:Key="Lunatic.Tone.Unlit" Color="#888888" />
 
     <!-- Device silhouette inside the ring: known level, and no reading. -->
@@ -20,4 +21,24 @@
     <!-- State text under the value ("Batería baja", "Cargando"); the other states use the secondary text color. -->
     <SolidColorBrush x:Key="Lunatic.State.Low" Color="#B91C1C" />
     <SolidColorBrush x:Key="Lunatic.State.Charging" Color="#0E7490" />
+
+    <!--
+        Surfaces. The Fluent look keeps the windows as they were: no backdrop, no panels, the Fluent radii.
+        Lunatic Glass (Lunatic.Glass.*.xaml) gives these keys its glow backdrop, translucent panels and larger radii.
+    -->
+    <SolidColorBrush x:Key="Lunatic.Backdrop" Color="Transparent" />
+    <SolidColorBrush x:Key="Lunatic.Panel.Background" Color="Transparent" />
+    <SolidColorBrush x:Key="Lunatic.Panel.Stroke" Color="Transparent" />
+    <Thickness x:Key="Lunatic.Panel.StrokeThickness">0</Thickness>
+    <CornerRadius x:Key="Lunatic.Panel.CornerRadius">0</CornerRadius>
+    <Thickness x:Key="Lunatic.Panel.Margin">0</Thickness>
+    <CornerRadius x:Key="Lunatic.Card.CornerRadius">6</CornerRadius>
+    <CornerRadius x:Key="Lunatic.Flyout.CornerRadius">8</CornerRadius>
+    <CornerRadius x:Key="Lunatic.Flyout.InnerCornerRadius">7</CornerRadius>
+    <CornerRadius x:Key="Lunatic.Flyout.FooterCornerRadius">0,0,7,7</CornerRadius>
+    <SolidColorBrush x:Key="Lunatic.Flyout.Row.Background" Color="Transparent" />
+    <Thickness x:Key="Lunatic.Flyout.Row.Margin">0</Thickness>
+    <Thickness x:Key="Lunatic.Flyout.Row.Padding">16,6</Thickness>
+    <!-- The flyout footer: the Fluent base background (AppTheme swaps this dictionary after every light or dark change, so it follows). -->
+    <SolidColorBrush x:Key="Lunatic.Flyout.Footer" Color="{DynamicResource SolidBackgroundFillColorBase}" />
 </ResourceDictionary>

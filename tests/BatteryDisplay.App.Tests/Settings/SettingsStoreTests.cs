@@ -113,6 +113,25 @@ public sealed class SettingsStoreTests : IDisposable
     }
 
     [Fact]
+    public void NotifyLowBatteryOff_RoundTrips()
+    {
+        var store = Open();
+
+        Assert.True(store.Save(store.Current with { NotifyLowBattery = false }));
+
+        Assert.False(Open().Current.NotifyLowBattery);
+        Assert.Contains("\"notifyLowBattery\": false", File.ReadAllText(SettingsPath));
+    }
+
+    [Fact]
+    public void FileWrittenBeforeNotifyLowBatteryExisted_NotifiesLowBattery()
+    {
+        WriteFile("""{ "trayIconMode": "Lowest", "devices": { "a": { "pinned": true } } }""");
+
+        Assert.True(Open().Current.NotifyLowBattery);
+    }
+
+    [Fact]
     public void Hidden_IsWrittenToTheFile()
     {
         var store = Open();
@@ -130,6 +149,68 @@ public sealed class SettingsStoreTests : IDisposable
         var xion = Open().Current.For("xion");
 
         Assert.Equal(new DeviceSettings("Home theater", true, 20, true, Hidden: false), xion);
+    }
+
+    [Fact]
+    public void Appearance_RoundTrips_AsItsName()
+    {
+        var store = Open();
+
+        Assert.True(store.Save(store.Current with { Appearance = UiAppearance.Glass }));
+
+        Assert.Equal(UiAppearance.Glass, Open().Current.Appearance);
+        Assert.Contains("\"appearance\": \"Glass\"", File.ReadAllText(SettingsPath));
+    }
+
+    [Fact]
+    public void FileWrittenBeforeAppearanceExisted_LoadsFluent()
+    {
+        WriteFile("""{ "trayIconMode": "Lowest", "notifyLowBattery": false, "devices": { "a": { "pinned": true } } }""");
+
+        var settings = Open().Current;
+
+        Assert.Equal(UiAppearance.Fluent, settings.Appearance);
+        Assert.Equal(TrayIconMode.Lowest, settings.TrayIconMode);
+        Assert.False(settings.NotifyLowBattery);
+    }
+
+    [Fact]
+    public void UnknownAppearance_FallsBackToFluent_KeepingTheRest()
+    {
+        WriteFile("""{ "trayIconMode": "Lowest", "appearance": "Neon", "devices": { "a": { "pinned": true } } }""");
+
+        var settings = Open().Current;
+
+        Assert.Equal(UiAppearance.Fluent, settings.Appearance);
+        Assert.Equal(TrayIconMode.Lowest, settings.TrayIconMode);
+        Assert.True(settings.For("a").Pinned);
+        Assert.Contains(_logs, l => l.Contains("Neon", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void DeviceAliases_RoundTrip()
+    {
+        var store = Open();
+
+        Assert.True(store.Save(store.Current.WithAlias("bt-mouse", "razer")));
+
+        Assert.Equal("razer", Open().Current.CanonicalIdOf("bt-mouse"));
+    }
+
+    [Fact]
+    public void BlankOrSelfDeviceAliases_AreIgnored()
+    {
+        WriteFile("""{ "deviceAliases": { "bt-mouse": "razer", "a": "", "b": null, "c": "c" } }""");
+
+        Assert.Equal(["bt-mouse"], Open().Current.DeviceAliases.Keys);
+    }
+
+    [Fact]
+    public void FileWrittenBeforeDeviceAliasesExisted_HasNone()
+    {
+        WriteFile("""{ "devices": { "a": { "pinned": true } } }""");
+
+        Assert.Empty(Open().Current.DeviceAliases);
     }
 
     [Fact]

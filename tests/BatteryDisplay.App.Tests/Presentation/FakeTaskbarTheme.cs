@@ -7,11 +7,14 @@ internal sealed class FakeTaskbarTheme : ITaskbarTheme
 {
     public TrayIconTheme Theme { get; set; } = TrayIconTheme.Dark;
 
+    public TrayIconInk Ink { get; set; }
+
     public event EventHandler? Changed;
 
-    public void Switch(TrayIconTheme theme)
+    public void Switch(TrayIconTheme theme, TrayIconInk ink = default)
     {
         Theme = theme;
+        Ink = ink;
         Changed?.Invoke(this, EventArgs.Empty);
     }
 

@@ -6,10 +6,15 @@ namespace BatteryDisplay.App.Tests.Tray;
 
 public class TaskbarThemeTests
 {
+    private static readonly TrayIconInk WhiteOnBlack = new(Text: unchecked((int)0xFFFFFFFF), GrayText: unchecked((int)0xFF3FF23F));
+    private static readonly TrayIconInk YellowOnBlack = new(Text: unchecked((int)0xFFFFFF00), GrayText: unchecked((int)0xFFA6A6A6));
+
     private bool _light;
+    private bool _highContrast;
+    private TrayIconInk _ink = WhiteOnBlack;
     private readonly QueuedContext _ui = new();
 
-    private TaskbarTheme Create() => new(() => _light, _ui);
+    private TaskbarTheme Create() => new(() => _light, () => _highContrast, () => _ink, _ui);
 
     [Theory]
     [InlineData(false, TrayIconTheme.Dark)]
@@ -79,6 +84,79 @@ public class TaskbarThemeTests
         theme.PreferenceChanged(UserPreferenceCategory.General);
 
         theme.Dispose();
+        _ui.RunAll();
+
+        Assert.Equal(0, raised);
+    }
+
+    // High contrast
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void HighContrast_WinsOverTheTaskbarSetting_AndCarriesTheSystemInk(bool light)
+    {
+        _light = light;
+        _highContrast = true;
+
+        using var theme = Create();
+
+        Assert.Equal((TrayIconTheme.HighContrast, WhiteOnBlack), (theme.Theme, theme.Ink));
+    }
+
+    [Fact]
+    public void OutsideHighContrast_TheInkIsEmpty()
+    {
+        using var theme = Create();
+
+        Assert.Equal(default, theme.Ink);
+    }
+
+    [Fact]
+    public void TurningHighContrastOnAndOff_RaisesEachTime()
+    {
+        _light = true;
+        using var theme = Create();
+        var raised = 0;
+        theme.Changed += (_, _) => raised++;
+
+        _highContrast = true;
+        theme.PreferenceChanged(UserPreferenceCategory.Accessibility);
+        _ui.RunAll();
+
+        Assert.Equal((TrayIconTheme.HighContrast, WhiteOnBlack, 1), (theme.Theme, theme.Ink, raised));
+
+        _highContrast = false;
+        theme.PreferenceChanged(UserPreferenceCategory.Accessibility);
+        _ui.RunAll();
+
+        Assert.Equal((TrayIconTheme.Light, default(TrayIconInk), 2), (theme.Theme, theme.Ink, raised));
+    }
+
+    [Fact]
+    public void SwitchingBetweenHighContrastThemes_RaisesWithTheNewInk()
+    {
+        _highContrast = true;
+        using var theme = Create();
+        var raised = 0;
+        theme.Changed += (_, _) => raised++;
+
+        _ink = YellowOnBlack;
+        theme.PreferenceChanged(UserPreferenceCategory.Color);
+        _ui.RunAll();
+
+        Assert.Equal((TrayIconTheme.HighContrast, YellowOnBlack, 1), (theme.Theme, theme.Ink, raised));
+    }
+
+    [Fact]
+    public void SystemColorChange_OutsideHighContrast_DoesNotRaise()
+    {
+        using var theme = Create();
+        var raised = 0;
+        theme.Changed += (_, _) => raised++;
+
+        _ink = YellowOnBlack;
+        theme.PreferenceChanged(UserPreferenceCategory.Color);
         _ui.RunAll();
 
         Assert.Equal(0, raised);

@@ -6,7 +6,9 @@ namespace BatteryDisplay.App.Tray;
 /// <summary>
 /// Tray icon colors for each taskbar. Dark draws on its own dark disc, so the level colors are bright.
 /// Light has no disc and draws straight on a taskbar of about #EEEEEE to #F3F3F3: every color that carries meaning
-/// (ring tones, unlit track, glyph) keeps at least 3:1 against both ends of that range.
+/// (ring tones, glyph) keeps at least 3:1 against both ends of that range. The ring has no track: UnlitSegment is only
+/// the tone for a level with no reading. High contrast has no disc either and is monochrome in the theme's own colors,
+/// like the flyout: text color for the ring at every level and for the glyph, gray text for a glyph with no reading.
 /// </summary>
 internal sealed record IconPalette(Color? Disc, Color UnlitSegment, Color Silhouette, Color SilhouetteUnknown,
     Color High, Color Medium, Color Low, Color Charging)
@@ -31,7 +33,20 @@ internal sealed record IconPalette(Color? Disc, Color UnlitSegment, Color Silhou
         Low: Color.FromArgb(0xB9, 0x1C, 0x1C),
         Charging: Color.FromArgb(0x0E, 0x74, 0x90));
 
-    public static IconPalette For(TrayIconTheme theme) => theme == TrayIconTheme.Light ? Light : Dark;
+    public static IconPalette HighContrast(TrayIconInk ink)
+    {
+        var text = Color.FromArgb(ink.Text);
+        var gray = Color.FromArgb(ink.GrayText);
+        return new(Disc: null, UnlitSegment: gray, Silhouette: text, SilhouetteUnknown: gray,
+            High: text, Medium: text, Low: text, Charging: text);
+    }
+
+    public static IconPalette For(TrayIconTheme theme, TrayIconInk ink) => theme switch
+    {
+        TrayIconTheme.Light => Light,
+        TrayIconTheme.HighContrast => HighContrast(ink),
+        _ => Dark,
+    };
 
     public Color For(LevelColor level) => level switch
     {

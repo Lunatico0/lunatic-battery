@@ -15,13 +15,14 @@ public sealed class RazerHidProvider : IBatteryProvider
 
     private readonly CatalogEntry _entry;
 
-    public RazerHidProvider(CatalogEntry entry)
+    public RazerHidProvider(CatalogEntry entry, Guid? containerId = null)
     {
         var transactionId = entry.RequireOption("transactionId");
         if (transactionId is < byte.MinValue or > byte.MaxValue)
             throw new FormatException($"Catalog entry '{entry.Id}' has transactionId {transactionId}, outside a byte.");
 
         _entry = entry;
+        ContainerId = containerId;
         TransactionId = (byte)transactionId;
     }
 
@@ -29,6 +30,8 @@ public sealed class RazerHidProvider : IBatteryProvider
     public string Name => _entry.Name;
     public DeviceKind Kind => _entry.Kind;
     public string Source => "Dongle Razer";
+    public DeviceChannel Channel => DeviceChannel.VendorHid;
+    public Guid? ContainerId { get; }
     public int VendorId => _entry.VendorId;
 
     /// <summary>Tried in catalog order.</summary>

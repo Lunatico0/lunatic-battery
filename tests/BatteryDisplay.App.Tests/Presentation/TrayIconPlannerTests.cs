@@ -275,6 +275,51 @@ public class TrayIconPlannerTests
         Assert.Equal("mouse 70%", Assert.Single(slots).Model.Tooltip);
     }
 
+    // Never invisible
+
+    [Fact]
+    public void Searching_IsOneVisibleIcon_WithTheSearchingTooltip()
+    {
+        var slot = Assert.Single(TrayIconPlanner.Searching());
+
+        Assert.Equal(TrayIconPlanner.CombinedKey, slot.Key);
+        Assert.Equal(
+            new TrayIconModel(true, TrayIconPlanner.NoDeviceKind, 0, LevelColor.Unknown, false, "Lunatic Battery: buscando dispositivos"),
+            slot.Model);
+    }
+
+    [Fact]
+    public void EnsureOneVisible_NoSlots_ShowsTheNoDevicesIcon()
+    {
+        var slot = Assert.Single(TrayIconPlanner.EnsureOneVisible(Plan(TrayIconMode.PerDevice, null)));
+
+        Assert.Equal(TrayIconPlanner.CombinedKey, slot.Key);
+        Assert.Equal(
+            new TrayIconModel(true, TrayIconPlanner.NoDeviceKind, 0, LevelColor.Unknown, false, TrayIconPlanner.NoDevicesTooltip),
+            slot.Model);
+    }
+
+    [Fact]
+    public void EnsureOneVisible_OnlyHiddenSlots_PutsTheNoDevicesIconFirst_AndKeepsTheirPlaces()
+    {
+        var slots = TrayIconPlanner.EnsureOneVisible(Plan(TrayIconMode.PerDevice, null, Absent("a"), Absent("b")));
+
+        Assert.Equal([TrayIconPlanner.CombinedKey, "a", "b"], slots.Select(s => s.Key));
+        Assert.Equal((true, TrayIconPlanner.NoDevicesTooltip), (slots[0].Model.Visible, slots[0].Model.Tooltip));
+        Assert.All(slots.Skip(1), s => Assert.False(s.Model.Visible));
+    }
+
+    [Theory]
+    [InlineData(TrayIconMode.PerDevice)]
+    [InlineData(TrayIconMode.Lowest)]
+    [InlineData(TrayIconMode.LowestWithPinned)]
+    public void EnsureOneVisible_WithAVisibleSlot_ChangesNothing(TrayIconMode mode)
+    {
+        var planned = Plan(mode, null, Device("a", 50), Absent("b"));
+
+        Assert.Same(planned, TrayIconPlanner.EnsureOneVisible(planned));
+    }
+
     // Tooltip limit
 
     [Fact]

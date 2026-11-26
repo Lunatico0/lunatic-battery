@@ -8,7 +8,9 @@ namespace BatteryDisplay.App.Tray;
 /// <summary>
 /// Draws a level ring (filled in eighths) around a device silhouette, all as vector paths at the requested size, so the
 /// icon stays crisp at every DPI scale. On a dark taskbar it sits on a dark disc; on a light one there is no disc, the
-/// colors come from <see cref="IconPalette.Light"/> and the glyph cuts are holes that show the taskbar.
+/// colors come from <see cref="IconPalette.Light"/> and the glyph cuts are holes that show the taskbar. High contrast
+/// draws the same way, with no disc, in the theme's text colors (<see cref="IconPalette.HighContrast"/>).
+/// While charging, a lightning bolt takes the device silhouette's place.
 /// </summary>
 internal static class BatteryIconRenderer
 {
@@ -25,7 +27,7 @@ internal static class BatteryIconRenderer
         var s = MathF.Min(size.Width, size.Height);
         var center = new PointF(size.Width / 2f, size.Height / 2f);
 
-        var palette = IconPalette.For(model.Theme);
+        var palette = IconPalette.For(model.Theme, model.Ink);
         if (palette.Disc is { } discColor)
         {
             using var disc = new SolidBrush(discColor);
@@ -53,12 +55,10 @@ internal static class BatteryIconRenderer
         }
     }
 
+    // Only the remaining charge is drawn; the depleted part has no track, so the level reads as line versus no line
+    // rather than as one hue versus another.
     private static void DrawRing(Graphics g, PointF center, RingGeometry ring, TrayIconModel model, IconPalette palette)
     {
-        using var unlit = new SolidBrush(palette.UnlitSegment);
-        using (var track = AnnularSector(center, ring.Outer, ring.Inner, -90f, 360f))
-            g.FillPath(unlit, track);
-
         if (model.LitSegments == 0)
             return;
 
@@ -77,9 +77,13 @@ internal static class BatteryIconRenderer
         return path;
     }
 
+    // While charging the glyph is a lightning bolt instead of the device: the cyan ring alone would tell charging apart by
+    // hue only, which a colorblind user cannot read. The bolt is a shape, drawn in the glyph's color, so it reads the same
+    // in every theme. A small corner badge was tried first, but at 16 px it had to cut into the ring and the glyph and
+    // blurred into a blob; the full-size bolt stays sharp and leaves the ring untouched.
     private static void DrawSilhouette(Graphics g, PointF center, float radius, TrayIconModel model, IconPalette palette)
     {
-        var (body, cuts) = Silhouettes.For(model.Kind);
+        var (body, cuts) = model.Color == LevelColor.Charging ? Silhouettes.Bolt() : Silhouettes.For(model.Kind);
         using (body)
         using (cuts)
         using (var toPixels = new Matrix())
@@ -151,6 +155,19 @@ internal static class BatteryIconRenderer
                 }
             }
             return null;
+        }
+
+        // Lightning bolt, 1.5 wide by 2 tall: a zigzag whose middle is a solid bar, with no hairline tips that would
+        // vanish at 16 px.
+        public static (GraphicsPath Body, GraphicsPath Cuts) Bolt()
+        {
+            var body = new GraphicsPath();
+            body.AddPolygon(new PointF[]
+            {
+                new(0.18f, -1f), new(-0.675f, 0.16f), new(-0.09f, 0.16f), new(-0.3f, 1f),
+                new(0.675f, -0.2f), new(0.09f, -0.2f), new(0.42f, -1f),
+            });
+            return (body, new GraphicsPath());
         }
 
         // Top-down mouse: a capsule body with the left/right button split.

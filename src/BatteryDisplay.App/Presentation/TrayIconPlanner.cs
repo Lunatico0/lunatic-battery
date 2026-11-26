@@ -17,6 +17,22 @@ public static class TrayIconPlanner
     public const string NoDevicesTooltip = "Sin dispositivos";
     /// <summary>Glyph of the combined icon when no device has a reading.</summary>
     public const DeviceKind NoDeviceKind = DeviceKind.Other;
+    public const string SearchingTooltip = "Lunatic Battery: buscando dispositivos";
+
+    private static readonly TrayIconModel NoDevices = new(true, NoDeviceKind, 0, LevelColor.Unknown, false, NoDevicesTooltip);
+
+    /// <summary>
+    /// What the tray shows before the first device list arrives: one icon, under the combined key, so the app is never
+    /// invisible while discovery runs (or when it fails) and the menu is reachable right away.
+    /// </summary>
+    public static IReadOnlyList<TrayIconSlot> Searching() => [new(CombinedKey, NoDevices with { Tooltip = SearchingTooltip })];
+
+    /// <summary>
+    /// The app is never invisible: a plan with no visible icon (per device mode with nothing connected, nothing read
+    /// or everything hidden) gets the "no devices" icon first, under the combined key; the hidden slots keep their places.
+    /// </summary>
+    public static IReadOnlyList<TrayIconSlot> EnsureOneVisible(IReadOnlyList<TrayIconSlot> slots) =>
+        slots.Any(slot => slot.Model.Visible) ? slots : [new(CombinedKey, NoDevices), .. slots];
 
     public static IReadOnlyList<TrayIconSlot> Plan(TrayIconMode mode, IReadOnlyList<DeviceSnapshot> devices, ImmutableDictionary<string, DeviceSettings> settings)
     {
@@ -43,7 +59,7 @@ public static class TrayIconPlanner
         var read = devices.Where(d => d.Status is not null).ToArray();
         var shown = read.Where(d => d.Status!.Percent is not null).MinBy(d => d.Status!.Percent) ?? read.FirstOrDefault();
         if (shown is null)
-            return new TrayIconModel(true, NoDeviceKind, 0, LevelColor.Unknown, false, NoDevicesTooltip);
+            return NoDevices;
 
         var tooltip = TrayTooltip.ForMany(read.Select(d => (d.DisplayName, d.Status!)).ToArray());
         return TrayIconPresenter.Present(shown.DisplayName, shown.Kind, shown.Status, settingsOf(shown).LowBatteryThreshold) with { Tooltip = tooltip };

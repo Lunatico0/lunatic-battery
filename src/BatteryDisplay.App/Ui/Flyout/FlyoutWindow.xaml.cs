@@ -2,7 +2,6 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
-using System.Windows.Media;
 using System.Windows.Threading;
 using BatteryDisplay.App.Tray;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
@@ -44,7 +43,7 @@ public partial class FlyoutWindow : Window
     /// <summary>Raised when the flyout hides itself because it lost activation (a click elsewhere, the tray icon included).</summary>
     public event EventHandler? Dismissed;
 
-    /// <summary>Shows the flyout in the work area of the monitor that holds <paramref name="anchor"/> (the tray click, in screen pixels).</summary>
+    /// <summary>Shows the flyout in the work area of the monitor that holds <paramref name="anchor"/> (the tray click, in physical screen pixels).</summary>
     public void ShowAt(System.Drawing.Point anchor)
     {
         _anchor = anchor;
@@ -97,11 +96,12 @@ public partial class FlyoutWindow : Window
         var handle = new WindowInteropHelper(this).Handle;
         if (handle == IntPtr.Zero || !NativeMethods.GetWindowRect(handle, out var rect))
             return;
-        var screen = System.Windows.Forms.Screen.FromPoint(_anchor);
-        var edge = FlyoutPlacement.EdgeOf(screen.Bounds, screen.WorkingArea);
-        var margin = (int)Math.Round(MarginDips * VisualTreeHelper.GetDpi(this).DpiScaleX);
+        // Measured at the scale of the monitor under the click, not the one the window was last on: moving there
+        // resizes it (WM_DPICHANGED), and the SizeChanged that follows places it again with its real size.
+        if (FlyoutPlacement.MonitorAt(FlyoutMonitors.All(), _anchor) is not { } monitor)
+            return;
         var size = new System.Drawing.Size(rect.Right - rect.Left, rect.Bottom - rect.Top);
-        var corner = FlyoutPlacement.Place(screen.WorkingArea, edge, size, margin);
+        var corner = FlyoutPlacement.Place(monitor, size, FlyoutMonitors.ScaleOf(handle), MarginDips);
         if (corner.X == rect.Left && corner.Y == rect.Top)
             return;
         NativeMethods.SetWindowPos(handle, NativeMethods.HwndTopmost, corner.X, corner.Y, 0, 0,

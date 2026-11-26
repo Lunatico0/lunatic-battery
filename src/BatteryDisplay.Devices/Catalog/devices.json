@@ -4,6 +4,8 @@
   // Families and their options:
   //   razer-hid: transactionId of the 90-byte Razer feature report.
   //   steelseries-arctis-nova-5: interface (HID interface number) and usage (vendor usage of the status collection).
+  //   rapoo-hid: interface (HID interface number) and usage (vendor usage of the collection that pushes report 0xBB).
+  //   redragon-hid: interface (HID interface number) and usage (vendor usage of the collection that pushes report 0x13).
   "devices": [
     {
       // Wired 00DA and dongle 00DB, per OpenRazer razermouse_driver.h.
@@ -24,6 +26,29 @@
       "vendorId": "0x1038",
       "productIds": [ "0x2232", "0x2253" ],
       "options": { "interface": 3, "usage": "0xFFC00001" }
+    },
+    {
+      // 2.4 GHz dongle ("Rapoo Gaming Device"), verified on hardware 2026-11-26: MI_01, usage FF00:0002, report 0xBB.
+      "id": "rapoo-gaming-mouse",
+      "family": "rapoo-hid",
+      "name": "Rapoo Gaming Mouse",
+      "kind": "Mouse",
+      "vendorId": "0x24AE",
+      "productIds": [ "0x1211" ],
+      "options": { "interface": 1, "usage": "0xFF000002" }
+    },
+    {
+      // Compx 2.4 GHz receiver ("CX 2.4G Wireless Receiver") of the K673 (K673WBP-RGB-MAX), verified on hardware
+      // 2026-11-26: MI_01, usage FF02:0002, report 0x13 (20 bytes), pushed only on events, never queried.
+      // Many OEM keyboards share 3554:FA09; others, like the AULA F75, answer a query protocol instead and are not
+      // covered: they match this entry but never push its frames, so they show without a level.
+      "id": "redragon-k673",
+      "family": "redragon-hid",
+      "name": "Redragon K673",
+      "kind": "Keyboard",
+      "vendorId": "0x3554",
+      "productIds": [ "0xFA09" ],
+      "options": { "interface": 1, "usage": "0xFF020002" }
     }
   ]
 }

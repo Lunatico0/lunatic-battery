@@ -1,4 +1,4 @@
-using System.Diagnostics;
+using BatteryDisplay.App.Logging;
 using BatteryDisplay.Core;
 
 namespace BatteryDisplay.App.Polling;
@@ -6,7 +6,7 @@ namespace BatteryDisplay.App.Polling;
 /// <summary>Reads every provider in parallel on the thread pool, each bounded by a timeout. A failure or timeout yields null.</summary>
 public sealed class BatteryPoller(TimeSpan timeout, Action<string>? log = null)
 {
-    private readonly Action<string> _log = log ?? (message => Debug.WriteLine(message, "BatteryDisplay"));
+    private readonly Action<string> _log = log ?? AppLog.For("poller");
 
     public Task<BatteryStatus?[]> PollAsync(IReadOnlyList<IBatteryProvider> providers, CancellationToken ct) =>
         Task.WhenAll(providers.Select(p => ReadOneAsync(p, ct)));

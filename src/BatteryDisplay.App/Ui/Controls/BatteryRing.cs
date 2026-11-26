@@ -11,8 +11,9 @@ namespace BatteryDisplay.App.Ui.Controls;
 
 /// <summary>
 /// The battery ring of the tray icon at any size: <see cref="RingSegments.Count"/> segments clockwise from twelve
-/// o'clock, the first <see cref="LitSegments"/> in <see cref="LitBrush"/> and the rest in <see cref="UnlitBrush"/>,
-/// with the device glyph in the middle. Purely visual: the caller picks the brushes (from the theme) and the count.
+/// o'clock, the first <see cref="LitSegments"/> in <see cref="LitBrush"/> and nothing for the rest, with the device
+/// glyph in the middle. The depleted part has no track so the level reads as line versus no line, not by hue.
+/// Purely visual: the caller picks the brushes (from the theme) and the count.
 /// </summary>
 public sealed class BatteryRing : FrameworkElement
 {
@@ -26,10 +27,6 @@ public sealed class BatteryRing : FrameworkElement
 
     public static readonly DependencyProperty LitBrushProperty = DependencyProperty.Register(
         nameof(LitBrush), typeof(Brush), typeof(BatteryRing),
-        new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender));
-
-    public static readonly DependencyProperty UnlitBrushProperty = DependencyProperty.Register(
-        nameof(UnlitBrush), typeof(Brush), typeof(BatteryRing),
         new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender));
 
     public static readonly DependencyProperty GlyphProperty = DependencyProperty.Register(
@@ -54,12 +51,6 @@ public sealed class BatteryRing : FrameworkElement
     {
         get => (Brush?)GetValue(LitBrushProperty);
         set => SetValue(LitBrushProperty, value);
-    }
-
-    public Brush? UnlitBrush
-    {
-        get => (Brush?)GetValue(UnlitBrushProperty);
-        set => SetValue(UnlitBrushProperty, value);
     }
 
     public string Glyph
@@ -95,13 +86,10 @@ public sealed class BatteryRing : FrameworkElement
         var lit = Math.Clamp(LitSegments, 0, RingSegments.Count);
         var sweep = 360.0 / RingSegments.Count;
 
-        for (var i = 0; i < RingSegments.Count; i++)
+        for (var i = 0; LitBrush is not null && i < lit; i++)
         {
-            var brush = i < lit ? LitBrush : UnlitBrush;
-            if (brush is null)
-                continue;
             var start = i * sweep + GapDegrees / 2;
-            drawingContext.DrawGeometry(brush, null, Sector(center, inner, outer, start, start + sweep - GapDegrees));
+            drawingContext.DrawGeometry(LitBrush, null, Sector(center, inner, outer, start, start + sweep - GapDegrees));
         }
 
         if (string.IsNullOrEmpty(Glyph) || GlyphBrush is null)

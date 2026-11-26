@@ -1,6 +1,6 @@
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Text.Json;
+using BatteryDisplay.App.Logging;
 
 namespace BatteryDisplay.App.Settings;
 
@@ -19,7 +19,7 @@ public sealed class SettingsStore : ISettingsStore
     public SettingsStore(string path, Action<string>? log = null)
     {
         _path = path;
-        _log = log ?? (message => Debug.WriteLine(message, "BatteryDisplay"));
+        _log = log ?? AppLog.For("settings");
         Current = Load();
     }
 
@@ -103,17 +103,23 @@ public sealed class SettingsStore : ISettingsStore
         }
     }
 
-    // On-disk shape. Every field is optional so a partial or older file still loads; the mode is a string so an
-    // unknown future value falls back to the default instead of failing the whole file.
+    // On-disk shape. Every field is optional so a partial or older file still loads; the mode and the appearance are
+    // strings so an unknown future value falls back to the default instead of failing the whole file.
     private sealed class SettingsDocument
     {
         public string? TrayIconMode { get; set; }
+        public bool? NotifyLowBattery { get; set; }
+        public string? Appearance { get; set; }
         public Dictionary<string, DeviceDocument?>? Devices { get; set; }
+        public Dictionary<string, string?>? DeviceAliases { get; set; }
 
         public static SettingsDocument From(AppSettings settings) => new()
         {
             TrayIconMode = settings.TrayIconMode.ToString(),
+            NotifyLowBattery = settings.NotifyLowBattery,
+            Appearance = settings.Appearance.ToString(),
             Devices = settings.Devices.ToDictionary(p => p.Key, p => (DeviceDocument?)DeviceDocument.From(p.Value), StringComparer.Ordinal),
+            DeviceAliases = settings.DeviceAliases.ToDictionary(p => p.Key, p => (string?)p.Value, StringComparer.Ordinal),
         };
 
         public AppSettings ToSettings(Action<string> log)
@@ -131,7 +137,24 @@ public sealed class SettingsStore : ISettingsStore
                 if (device is not null)
                     devices[id] = device.ToSettings();
             }
-            return new AppSettings(mode, devices.ToImmutable());
+            // A blank or self alias names no other device; dropping it keeps the one-lookup invariant of AppSettings.
+            var aliases = ImmutableDictionary.CreateBuilder<string, string>(StringComparer.Ordinal);
+            foreach (var (alias, canonical) in DeviceAliases ?? [])
+            {
+                if (!string.IsNullOrWhiteSpace(alias) && !string.IsNullOrWhiteSpace(canonical) && alias != canonical)
+                    aliases[alias] = canonical;
+            }
+            return new AppSettings(mode, devices.ToImmutable(), NotifyLowBattery ?? true, AppearanceOf(log)) { DeviceAliases = aliases.ToImmutable() };
+        }
+
+        private UiAppearance AppearanceOf(Action<string> log)
+        {
+            if (Appearance is not { } text)
+                return UiAppearance.Fluent;
+            if (Enum.TryParse(text, ignoreCase: true, out UiAppearance appearance) && Enum.IsDefined(appearance))
+                return appearance;
+            log($"settings: unknown appearance '{text}', using {UiAppearance.Fluent}");
+            return UiAppearance.Fluent;
         }
     }
 
