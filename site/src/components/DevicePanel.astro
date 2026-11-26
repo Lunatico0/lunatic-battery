@@ -89,5 +89,63 @@ const { devices } = Astro.props;
     ))
   }
   <span style="width: 1px; height: 20px; background: var(--glass-edge);"></span>
-  <span style="font-family: var(--font-mono); font-size: 13px; color: var(--ink-muted);">21:47</span>
+  <span data-tray-lang style="font-size: 13px; color: var(--ink-muted);">ESP</span>
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color: var(--ink-muted);">
+    <g data-tray-net="ethernet">
+      <rect x="3" y="4" width="18" height="12" rx="1.5" />
+      <path d="M12 16v4m-4 0h8" />
+    </g>
+    <g data-tray-net="wifi" style="display: none;">
+      <path d="M2.5 9.5a14 14 0 0 1 19 0M5.5 13a9.5 9.5 0 0 1 13 0M8.5 16.5a5 5 0 0 1 7 0" />
+      <circle cx="12" cy="20" r="0.8" fill="currentColor" />
+    </g>
+    <g data-tray-net="offline" style="display: none;">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M3 12h18M12 3c2.5 2.5 3.5 5.5 3.5 9s-1 6.5-3.5 9c-2.5-2.5-3.5-5.5-3.5-9s1-6.5 3.5-9zM4 4l16 16" />
+    </g>
+  </svg>
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color: var(--ink-muted);">
+    <path d="M4 9h4l5-4v14l-5-4H4z" />
+    <path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12" />
+  </svg>
+  <span style="display: flex; flex-direction: column; align-items: flex-end; font-size: 12px; line-height: 16px; color: var(--ink-muted); font-variant-numeric: tabular-nums;">
+    <span data-tray-time>21:47</span>
+    <span data-tray-date>26/11/2026</span>
+  </span>
 </div>
+
+<script>
+  // The tray shows the visitor's own clock, keyboard language and connection, like the real one. Browsers expose
+  // no system volume and, outside Chrome on Android, no connection type, so the speaker stays static and the network
+  // icon shows wifi only when the browser says so.
+  const LANG: Record<string, string> = {
+    es: 'ESP', en: 'ENG', pt: 'POR', fr: 'FRA', de: 'DEU', it: 'ITA', nl: 'NLD', pl: 'POL',
+    ru: 'RUS', tr: 'TRK', ja: 'JPN', ko: 'KOR', zh: 'CHS',
+  };
+
+  const lang = document.querySelector<HTMLElement>('[data-tray-lang]');
+  const time = document.querySelector<HTMLElement>('[data-tray-time]');
+  const date = document.querySelector<HTMLElement>('[data-tray-date]');
+  const nets = document.querySelectorAll<SVGGElement>('[data-tray-net]');
+
+  const code = (navigator.language || 'es').split('-')[0].toLowerCase();
+  if (lang) lang.textContent = LANG[code] ?? code.toUpperCase();
+
+  function tick() {
+    const now = new Date();
+    if (time) time.textContent = now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    if (date) date.textContent = now.toLocaleDateString(undefined, { day: '2-digit', month: '2-digit', year: 'numeric' });
+    setTimeout(tick, 60_000 - (now.getSeconds() * 1000 + now.getMilliseconds()));
+  }
+
+  function showNetwork() {
+    const type = (navigator as Navigator & { connection?: { type?: string } }).connection?.type;
+    const active = !navigator.onLine ? 'offline' : type === 'wifi' ? 'wifi' : 'ethernet';
+    nets.forEach((g) => (g.style.display = g.dataset.trayNet === active ? '' : 'none'));
+  }
+
+  tick();
+  showNetwork();
+  addEventListener('online', showNetwork);
+  addEventListener('offline', showNetwork);
+</script>
