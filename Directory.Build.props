@@ -7,7 +7,7 @@
   <PropertyGroup>
     <!-- The one version of the app: assemblies, the About screen and the Velopack release (the release workflow reads
          it and refuses a tag that does not match). Semantic versioning: MAJOR.MINOR.PATCH. -->
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     <!-- The one place for the GitHub repository, as https://github.com/<owner>/<repo>. The app checks its releases
          for updates; while this is empty, updates stay off. -->
     <RepositoryUrl>https://github.com/Lunatico0/lunatic-battery</RepositoryUrl>
