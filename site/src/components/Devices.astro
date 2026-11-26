@@ -1,0 +1,43 @@
+---
+import type { Supported } from '../data/content';
+
+interface Props {
+  supported: Supported[];
+}
+
+const { supported } = Astro.props;
+---
+
+<section
+  id="dispositivos"
+  class="lg-glass"
+  style="display: flex; flex-wrap: wrap; gap: 32px; padding: 32px; background: var(--glass-1); border: 1px solid var(--glass-edge); border-radius: var(--radius-lg); box-shadow: var(--shadow-glass);"
+>
+  <div style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 12px;">
+    <span style="font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: 0.08em; color: var(--brand-ink);">
+      DISPOSITIVOS
+    </span>
+    <h2
+      style="margin: 0; font-size: 36px; line-height: 40px; font-weight: 650; letter-spacing: -0.025em; text-wrap: balance;"
+    >
+      Los que ya lee
+    </h2>
+    <p style="margin: 0; color: var(--ink-muted); text-wrap: pretty;">
+      Detecta solo lo que conectás y lo saca cuando lo desconectás. Si un mismo aparato aparece por dos caminos, lo
+      muestra una vez.
+    </p>
+    <a href="https://github.com/Lunatico0/lunatic-battery/issues/new" style="font-weight: 600; margin-top: 8px;">
+      ¿El tuyo no aparece? Contanos cuál es
+    </a>
+  </div>
+  <ul style="flex: 1 1 420px; min-width: 0; margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column;">
+    {
+      supported.map((s) => (
+        <li style="display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--glass-edge);">
+          <span style="font-weight: 600;">{s.name}</span>
+          <span style="font-family: var(--font-mono); font-size: 13px; color: var(--ink-muted); text-align: right;">{s.via}</span>
+        </li>
+      ))
+    }
+  </ul>
+</section>

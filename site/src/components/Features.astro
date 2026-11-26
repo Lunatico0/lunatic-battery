@@ -1,0 +1,42 @@
+---
+import type { Feature } from '../data/content';
+
+interface Props {
+  features: Feature[];
+}
+
+const { features } = Astro.props;
+---
+
+<section id="funciones" style="display: flex; flex-direction: column; gap: 32px;">
+  <div style="display: flex; flex-direction: column; gap: 12px; max-width: 640px;">
+    <span style="font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: 0.08em; color: var(--brand-ink);">
+      FUNCIONES
+    </span>
+    <h2
+      style="margin: 0; font-size: 36px; line-height: 40px; font-weight: 650; letter-spacing: -0.025em; text-wrap: balance;"
+    >
+      Hace una sola cosa, y la hace en silencio.
+    </h2>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 24px;">
+    {
+      features.map((f) => (
+        <article
+          class="lg-glass"
+          style="display: flex; flex-direction: column; gap: 12px; padding: 24px; background: var(--glass-1); border: 1px solid var(--glass-edge); border-radius: var(--radius-md); box-shadow: var(--shadow-glass);"
+        >
+          <span
+            style="width: 44px; height: 44px; border-radius: var(--radius-sm); background: var(--brand-soft); color: var(--brand-ink); display: flex; align-items: center; justify-content: center;"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d={f.icon} />
+            </svg>
+          </span>
+          <h3 style="margin: 0; font-size: 17px; line-height: 24px; font-weight: 600;">{f.title}</h3>
+          <p style="margin: 0; color: var(--ink-muted); text-wrap: pretty;">{f.body}</p>
+        </article>
+      ))
+    }
+  </div>
+</section>

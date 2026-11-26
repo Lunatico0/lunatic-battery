@@ -1,0 +1,111 @@
+/* Base y utilidades Lunatic Glass traducidas del helmet del diseño aprobado. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+html {
+  overflow-x: hidden;
+}
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 22px;
+}
+img {
+  max-width: 100%;
+}
+a {
+  color: var(--brand-ink);
+}
+a:hover {
+  color: var(--ink);
+}
+
+.lg-glass {
+  -webkit-backdrop-filter: blur(var(--blur-glass)) saturate(160%);
+  backdrop-filter: blur(var(--blur-glass)) saturate(160%);
+}
+.lg-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(var(--blur-aurora));
+  animation: lg-drift var(--dur-ambient) var(--ease-drift) infinite alternate;
+}
+.lg-rise {
+  animation: lg-rise var(--dur-slow) var(--ease-out) both;
+}
+.lg-btn {
+  transition:
+    transform var(--dur-instant) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out),
+    background var(--dur-instant);
+}
+.lg-btn:active {
+  transform: scale(0.97);
+}
+.lg-primary:hover {
+  box-shadow: var(--shadow-glow);
+  color: var(--on-brand);
+}
+.lg-ghost:hover {
+  background: var(--glass-2);
+  color: var(--ink);
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+@keyframes lg-drift {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(6%, 4%) scale(1.08);
+  }
+  100% {
+    transform: translate(-4%, 8%) scale(0.96);
+  }
+}
+@keyframes lg-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lg-blob,
+  .lg-rise {
+    animation: none;
+  }
+}
+
+/* Shell: el contenedor de 1200px del diseño, con gutter de 16px en mobile. */
+.lg-shell {
+  position: relative;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 24px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 96px;
+}
+@media (max-width: 480px) {
+  .lg-shell {
+    padding-left: 16px;
+    padding-right: 16px;
+    gap: 64px;
+  }
+}

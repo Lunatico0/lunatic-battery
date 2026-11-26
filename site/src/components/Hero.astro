@@ -1,0 +1,66 @@
+---
+import type { Device } from '../data/content';
+import DevicePanel from './DevicePanel.astro';
+
+interface Props {
+  devices: Device[];
+}
+
+const { devices } = Astro.props;
+---
+
+<section id="top" style="display: flex; flex-wrap: wrap; align-items: center; gap: 48px;">
+  <div class="lg-rise" style="flex: 1 1 480px; min-width: 0; display: flex; flex-direction: column; gap: 24px;">
+    <span style="font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: 0.08em; color: var(--brand-ink);">
+      PARA WINDOWS
+    </span>
+    <h1
+      style="margin: 0; font-size: clamp(40px, 6vw, 72px); line-height: 1.02; font-weight: 700; letter-spacing: -0.035em; font-variation-settings: 'opsz' 96; text-wrap: balance;"
+    >
+      La batería de tus periféricos, al lado del reloj.
+    </h1>
+    <p style="margin: 0; max-width: 520px; font-size: 18px; line-height: 28px; color: var(--ink-muted); text-wrap: pretty;">
+      Mouse, auriculares y joysticks inalámbricos con su porcentaje en la bandeja de Windows. Sin abrir el programa de
+      cada marca, sin cuentas, sin telemetría.
+    </p>
+    <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center;">
+      <a
+        class="lg-btn lg-primary"
+        href="https://github.com/Lunatico0/lunatic-battery/releases/latest"
+        style="display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 22px; border-radius: var(--radius-sm); background: var(--brand); color: var(--on-brand); font-weight: 650; font-size: 16px; text-decoration: none;"
+      >
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M12 3v12m0 0-4.5-4.5M12 15l4.5-4.5M4 19h16"></path>
+        </svg>
+        Descargar para Windows
+      </a>
+      <a
+        class="lg-btn lg-ghost lg-glass"
+        href="https://github.com/Lunatico0/lunatic-battery"
+        style="display: flex; align-items: center; min-height: 48px; padding: 0 20px; border-radius: var(--radius-sm); background: var(--glass-1); border: 1px solid var(--glass-edge); color: var(--ink); font-weight: 600; font-size: 16px; text-decoration: none;"
+      >
+        Ver el código
+      </a>
+    </div>
+    <span style="font-family: var(--font-mono); font-size: 13px; line-height: 18px; color: var(--ink-muted);">
+      v1.0.0 · gratis · código abierto · MIT
+    </span>
+  </div>
+
+  <div
+    class="lg-rise"
+    style="flex: 1 1 400px; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 16px; animation-delay: 120ms;"
+  >
+    <DevicePanel devices={devices} />
+  </div>
+</section>

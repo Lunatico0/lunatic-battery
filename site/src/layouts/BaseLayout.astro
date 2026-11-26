@@ -1,0 +1,47 @@
+---
+import '../styles/tokens.css';
+import '../styles/global.css';
+
+const title = 'Lunatic Battery';
+const description =
+  'Mouse, auriculares y joysticks inalámbricos con su porcentaje en la bandeja de Windows. Sin abrir el programa de cada marca, sin cuentas, sin telemetría.';
+const ogImage = new URL(`${import.meta.env.BASE_URL}icon-512.png`, Astro.site).toString();
+const canonicalUrl = new URL(import.meta.env.BASE_URL, Astro.site).toString();
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalUrl} />
+
+    <link rel="icon" type="image/svg+xml" href={`${import.meta.env.BASE_URL}favicon.svg`} />
+    <link rel="apple-touch-icon" href={`${import.meta.env.BASE_URL}apple-touch-icon.png`} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <meta name="theme-color" content="#070c10" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#e6efed" media="(prefers-color-scheme: light)" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Geist+Mono:wght@400..600&display=swap"
+    />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
